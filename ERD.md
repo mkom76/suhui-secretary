@@ -16,12 +16,16 @@ erDiagram
         varchar name "학생 이름"
         varchar grade "학년"
         varchar school "학교명"
+        varchar academy "학원명"
+        datetime created_at "생성일시"
+        datetime updated_at "수정일시"
     }
 
     TESTS {
         bigint id PK "자동 증가"
         varchar title "시험 제목"
         datetime created_at "생성일시"
+        datetime updated_at "수정일시"
     }
 
     TEST_QUESTIONS {
@@ -29,6 +33,9 @@ erDiagram
         bigint test_id FK "시험 ID"
         int number "문제 번호"
         varchar answer "정답"
+        double points "배점"
+        datetime created_at "생성일시"
+        datetime updated_at "수정일시"
     }
 
     STUDENT_SUBMISSIONS {
@@ -36,6 +43,9 @@ erDiagram
         bigint student_id FK "학생 ID"
         bigint test_id FK "시험 ID"
         int total_score "총점"
+        datetime submitted_at "응시일시"
+        datetime created_at "생성일시"
+        datetime updated_at "수정일시"
     }
 
     STUDENT_SUBMISSION_DETAILS {
@@ -44,6 +54,8 @@ erDiagram
         bigint question_id FK "문제 ID"
         varchar student_answer "학생 답안"
         boolean is_correct "정답 여부"
+        datetime created_at "생성일시"
+        datetime updated_at "수정일시"
     }
 
     TEACHER_FEEDBACKS {
@@ -52,6 +64,7 @@ erDiagram
         varchar teacher_name "선생님 이름"
         text content "피드백 내용"
         datetime created_at "생성일시"
+        datetime updated_at "수정일시"
     }
 ```
 
@@ -104,7 +117,8 @@ erDiagram
    - 제출 삭제 시 관련 답안 상세와 피드백도 삭제
 
 3. **자동 타임스탬프**:
-   - 시험과 피드백은 생성 시 자동으로 현재 시간 기록
+   - 모든 엔티티는 생성 시 created_at, 수정 시 updated_at 자동 기록 (JPA Auditing)
+   - student_submissions는 추가로 submitted_at 필드를 통해 실제 시험 응시 시간 기록
 
 ## 인덱스 전략
 

@@ -128,6 +128,7 @@ public class DataInitializer {
             submission1.setStudent(student1);
             submission1.setTest(test1);
             submission1.setTotalScore(80); // 80점
+            submission1.setSubmittedAt(LocalDateTime.now().minusDays(30));
             submission1 = studentSubmissionRepository.save(submission1);
 
             // student1의 답안 상세
@@ -148,6 +149,7 @@ public class DataInitializer {
             submission2.setStudent(student2);
             submission2.setTest(test1);
             submission2.setTotalScore(90); // 90점
+            submission2.setSubmittedAt(LocalDateTime.now().minusDays(29));
             submission2 = studentSubmissionRepository.save(submission2);
 
             // student2의 답안 상세
@@ -168,6 +170,7 @@ public class DataInitializer {
             submission3.setStudent(student3);
             submission3.setTest(test2);
             submission3.setTotalScore(73); // 73점
+            submission3.setSubmittedAt(LocalDateTime.now().minusDays(20));
             submission3 = studentSubmissionRepository.save(submission3);
 
             // student3의 답안 상세
@@ -183,7 +186,87 @@ public class DataInitializer {
                 studentSubmissionDetailRepository.save(detail);
             }
 
-            log.info("Created {} student submissions with details", 3);
+            // student1의 test2 제출 (85점)
+            StudentSubmission submission4 = new StudentSubmission();
+            submission4.setStudent(student1);
+            submission4.setTest(test2);
+            submission4.setTotalScore(85);
+            submission4.setSubmittedAt(LocalDateTime.now().minusDays(18));
+            submission4 = studentSubmissionRepository.save(submission4);
+
+            for (int i = 0; i < test2Questions.size(); i++) {
+                StudentSubmissionDetail detail = new StudentSubmissionDetail();
+                detail.setSubmission(submission4);
+                detail.setQuestion(test2Questions.get(i));
+                String correctAnswer = test2Questions.get(i).getAnswer();
+                // 13문제는 정답, 2문제는 오답
+                String studentAnswer = (i < 13) ? correctAnswer : "2";
+                detail.setStudentAnswer(studentAnswer);
+                detail.setIsCorrect(correctAnswer.equals(studentAnswer));
+                studentSubmissionDetailRepository.save(detail);
+            }
+
+            // student1의 test3 제출 (92점)
+            StudentSubmission submission5 = new StudentSubmission();
+            submission5.setStudent(student1);
+            submission5.setTest(test3);
+            submission5.setTotalScore(92);
+            submission5.setSubmittedAt(LocalDateTime.now().minusDays(10));
+            submission5 = studentSubmissionRepository.save(submission5);
+
+            for (int i = 0; i < test3Questions.size(); i++) {
+                StudentSubmissionDetail detail = new StudentSubmissionDetail();
+                detail.setSubmission(submission5);
+                detail.setQuestion(test3Questions.get(i));
+                String correctAnswer = test3Questions.get(i).getAnswer();
+                // 18문제는 정답, 2문제는 오답
+                String studentAnswer = (i < 18) ? correctAnswer : "4";
+                detail.setStudentAnswer(studentAnswer);
+                detail.setIsCorrect(correctAnswer.equals(studentAnswer));
+                studentSubmissionDetailRepository.save(detail);
+            }
+
+            // student2의 test2 제출 (78점)
+            StudentSubmission submission6 = new StudentSubmission();
+            submission6.setStudent(student2);
+            submission6.setTest(test2);
+            submission6.setTotalScore(78);
+            submission6.setSubmittedAt(LocalDateTime.now().minusDays(17));
+            submission6 = studentSubmissionRepository.save(submission6);
+
+            for (int i = 0; i < test2Questions.size(); i++) {
+                StudentSubmissionDetail detail = new StudentSubmissionDetail();
+                detail.setSubmission(submission6);
+                detail.setQuestion(test2Questions.get(i));
+                String correctAnswer = test2Questions.get(i).getAnswer();
+                // 12문제는 정답, 3문제는 오답
+                String studentAnswer = (i < 12) ? correctAnswer : "1";
+                detail.setStudentAnswer(studentAnswer);
+                detail.setIsCorrect(correctAnswer.equals(studentAnswer));
+                studentSubmissionDetailRepository.save(detail);
+            }
+
+            // student3의 test3 제출 (88점)
+            StudentSubmission submission7 = new StudentSubmission();
+            submission7.setStudent(student3);
+            submission7.setTest(test3);
+            submission7.setTotalScore(88);
+            submission7.setSubmittedAt(LocalDateTime.now().minusDays(9));
+            submission7 = studentSubmissionRepository.save(submission7);
+
+            for (int i = 0; i < test3Questions.size(); i++) {
+                StudentSubmissionDetail detail = new StudentSubmissionDetail();
+                detail.setSubmission(submission7);
+                detail.setQuestion(test3Questions.get(i));
+                String correctAnswer = test3Questions.get(i).getAnswer();
+                // 17문제는 정답, 3문제는 오답
+                String studentAnswer = (i < 17) ? correctAnswer : "3";
+                detail.setStudentAnswer(studentAnswer);
+                detail.setIsCorrect(correctAnswer.equals(studentAnswer));
+                studentSubmissionDetailRepository.save(detail);
+            }
+
+            log.info("Created {} student submissions with details", 7);
 
             // 7. 선생님 피드백 생성
             TeacherFeedback feedback1 = new TeacherFeedback();
@@ -210,7 +293,19 @@ public class DataInitializer {
             feedback4.setContent("추가 피드백: 문제 8번과 9번의 풀이 과정을 다시 검토해보세요. 계산 실수가 있었습니다.");
             teacherFeedbackRepository.save(feedback4);
 
-            log.info("Created {} teacher feedbacks", 4);
+            TeacherFeedback feedback5 = new TeacherFeedback();
+            feedback5.setSubmission(submission4);
+            feedback5.setTeacherName("김선생님");
+            feedback5.setContent("좋은 성적입니다! 지난 시험보다 5점이나 올랐네요. 계속 이 추세를 유지하세요.");
+            teacherFeedbackRepository.save(feedback5);
+
+            TeacherFeedback feedback6 = new TeacherFeedback();
+            feedback6.setSubmission(submission5);
+            feedback6.setTeacherName("이선생님");
+            feedback6.setContent("매우 훌륭한 성적입니다! 꾸준히 실력이 향상되고 있어요. 이번에 틀린 문제 유형을 복습하면 다음엔 만점도 가능할 것 같습니다.");
+            teacherFeedbackRepository.save(feedback6);
+
+            log.info("Created {} teacher feedbacks", 6);
 
             log.info("Sample data initialization completed successfully!");
             log.info("===================================================");
@@ -218,8 +313,8 @@ public class DataInitializer {
             log.info("- Students: 4");
             log.info("- Tests: 3");
             log.info("- Test Questions: 45");
-            log.info("- Student Submissions: 3");
-            log.info("- Teacher Feedbacks: 4");
+            log.info("- Student Submissions: 7");
+            log.info("- Teacher Feedbacks: 6");
             log.info("===================================================");
         };
     }

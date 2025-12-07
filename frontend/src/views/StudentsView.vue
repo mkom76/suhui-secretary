@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { studentAPI, type Student } from '../api/client'
+
+const router = useRouter()
 
 const loading = ref(false)
 const students = ref<Student[]>([])
@@ -62,7 +65,7 @@ const handleSubmit = async () => {
 
 const handleDelete = async (student: Student) => {
   if (!student.id) return
-  
+
   try {
     await ElMessageBox.confirm(
       `${student.name} 학생을 삭제하시겠습니까?`,
@@ -73,7 +76,7 @@ const handleDelete = async (student: Student) => {
         type: 'warning',
       }
     )
-    
+
     await studentAPI.deleteStudent(student.id)
     ElMessage.success('학생이 삭제되었습니다.')
     fetchStudents()
@@ -82,6 +85,10 @@ const handleDelete = async (student: Student) => {
       ElMessage.error('삭제에 실패했습니다.')
     }
   }
+}
+
+const navigateToDetail = (studentId: number) => {
+  router.push(`/students/${studentId}`)
 }
 
 onMounted(() => {
@@ -139,9 +146,12 @@ onMounted(() => {
       >
         <el-table-column prop="name" label="학생명" min-width="120">
           <template #default="{ row }">
-            <div style="display: flex; align-items: center; gap: 8px">
+            <div
+              style="display: flex; align-items: center; gap: 8px; cursor: pointer"
+              @click="navigateToDetail(row.id)"
+            >
               <el-avatar size="small" :icon="UserFilled" />
-              <span style="font-weight: 500">{{ row.name }}</span>
+              <span style="font-weight: 500; color: #409eff">{{ row.name }}</span>
             </div>
           </template>
         </el-table-column>

@@ -16,6 +16,8 @@ interface Student {
   grade: string;
   school: string;
   academy: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Test {
@@ -23,6 +25,7 @@ interface Test {
   title: string;
   questionCount?: number;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Question {
@@ -30,14 +33,20 @@ interface Question {
   number: number;
   answer: string;
   points: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Submission {
   id?: number;
   student?: Student;
   test?: Test;
+  testId?: number;
+  testTitle?: string;
   totalScore: number;
   submittedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Feedback {
@@ -46,6 +55,7 @@ interface Feedback {
   teacherName: string;
   content: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 // Students API

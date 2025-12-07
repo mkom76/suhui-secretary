@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { testAPI, type Question } from '../api/client'
+import {onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {ElMessage, ElMessageBox} from 'element-plus'
+import {type Question, testAPI} from '../api/client'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,25 +89,6 @@ const reorderQuestions = () => {
   questions.value.forEach((q, index) => {
     q.number = index + 1
   })
-}
-
-const handleDragStart = (index: number) => {
-  // 드래그 시작
-}
-
-const handleDragOver = (event: DragEvent) => {
-  event.preventDefault()
-}
-
-const handleDrop = (targetIndex: number, event: DragEvent) => {
-  event.preventDefault()
-  const sourceIndex = parseInt(event.dataTransfer?.getData('index') || '-1')
-  if (sourceIndex === -1 || sourceIndex === targetIndex) return
-
-  const [movedItem] = questions.value.splice(sourceIndex, 1)
-  questions.value.splice(targetIndex, 0, movedItem)
-  reorderQuestions()
-  hasChanges.value = true
 }
 
 const handleSaveAll = async () => {
@@ -204,7 +185,7 @@ onMounted(() => {
           <el-icon color="#409eff">
             <List />
           </el-icon>
-          <span style="font-weight: 600">문제 목록 (드래그하여 순서 변경)</span>
+          <span style="font-weight: 600">문제 목록</span>
         </div>
       </template>
 
@@ -215,22 +196,6 @@ onMounted(() => {
         stripe
         row-key="number"
       >
-        <el-table-column label="" width="50" align="center">
-          <template #default="{ $index }">
-            <div
-              draggable="true"
-              @dragstart="(e) => e.dataTransfer?.setData('index', String($index))"
-              @dragover="handleDragOver"
-              @drop="(e) => handleDrop($index, e)"
-              style="cursor: move; padding: 8px"
-            >
-              <el-icon size="20" color="#909399">
-                <DCaret />
-              </el-icon>
-            </div>
-          </template>
-        </el-table-column>
-
         <el-table-column prop="number" label="문제 번호" width="120" align="center">
           <template #default="{ row }">
             <el-tag type="info" size="large">{{ row.number }}번</el-tag>

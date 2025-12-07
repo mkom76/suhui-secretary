@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -18,6 +19,9 @@ public class StudentSubmissionDto {
     private Long testId;
     private String testTitle;
     private Integer totalScore;
+    private LocalDateTime submittedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private List<SubmissionDetailDto> details;
 
     public static StudentSubmissionDto from(StudentSubmission submission) {
@@ -27,6 +31,9 @@ public class StudentSubmissionDto {
                 .testId(submission.getTest().getId())
                 .testTitle(submission.getTest().getTitle())
                 .totalScore(submission.getTotalScore())
+                .submittedAt(submission.getSubmittedAt())
+                .createdAt(submission.getCreatedAt())
+                .updatedAt(submission.getUpdatedAt())
                 .build();
     }
 }
