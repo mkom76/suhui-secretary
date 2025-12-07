@@ -14,12 +14,14 @@ public class TestQuestionDto {
     private Long id;
     private Integer number;
     private String answer;
-    
+    private Double points;
+
     public static TestQuestionDto from(TestQuestion question) {
         return TestQuestionDto.builder()
                 .id(question.getId())
                 .number(question.getNumber())
                 .answer(question.getAnswer())
+                .points(question.getPoints())
                 .build();
     }
 }

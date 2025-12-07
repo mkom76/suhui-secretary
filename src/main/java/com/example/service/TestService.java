@@ -161,6 +161,7 @@ public class TestService {
                 .test(test)
                 .number(dto.getNumber())
                 .answer(dto.getAnswer())
+                .points(dto.getPoints())
                 .build();
 
         question = testQuestionRepository.save(question);

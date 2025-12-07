@@ -11,6 +11,7 @@ const searchQuery = ref('')
 const dialogVisible = ref(false)
 const editMode = ref(false)
 const currentTest = ref<Test>({ title: '' })
+const questionCountInput = ref(10)
 
 const tableData = computed(() => {
   if (!searchQuery.value) return tests.value
@@ -34,6 +35,7 @@ const fetchTests = async () => {
 const openAddDialog = () => {
   editMode.value = false
   currentTest.value = { title: '' }
+  questionCountInput.value = 10
   dialogVisible.value = true
 }
 
@@ -48,12 +50,42 @@ const handleSubmit = async () => {
     if (editMode.value && currentTest.value.id) {
       await testAPI.updateTest(currentTest.value.id, currentTest.value)
       ElMessage.success('시험 정보가 수정되었습니다.')
+      dialogVisible.value = false
+      fetchTests()
     } else {
-      await testAPI.createTest(currentTest.value)
-      ElMessage.success('시험이 추가되었습니다.')
+      // 시험 생성
+      const response = await testAPI.createTest(currentTest.value)
+      const newTestId = response.data.id
+
+      // 배점 계산
+      const basePoints = Math.floor((100 / questionCountInput.value) * 10) / 10
+      let usedPoints = 0
+
+      // 문제 수만큼 빈 문제 자동 생성
+      for (let i = 1; i <= questionCountInput.value; i++) {
+        let points = basePoints
+
+        // 마지막 문제에 남은 점수 할당
+        if (i === questionCountInput.value) {
+          points = Math.round((100 - usedPoints) * 10) / 10
+        } else {
+          usedPoints += basePoints
+        }
+
+        await testAPI.addQuestion(newTestId, {
+          number: i,
+          answer: '',
+          points: points
+        })
+      }
+
+      ElMessage.success(`시험이 추가되고 ${questionCountInput.value}개의 문제가 생성되었습니다.`)
+      dialogVisible.value = false
+      fetchTests()
+
+      // 정답 관리 페이지로 이동
+      router.push(`/tests/${newTestId}/answers`)
     }
-    dialogVisible.value = false
-    fetchTests()
   } catch (error) {
     ElMessage.error('작업을 완료할 수 없습니다.')
   }
@@ -245,6 +277,18 @@ onMounted(() => {
             v-model="currentTest.title"
             placeholder="시험명을 입력하세요"
           />
+        </el-form-item>
+
+        <el-form-item v-if="!editMode" label="문제 수" required>
+          <el-input-number
+            v-model="questionCountInput"
+            :min="1"
+            :max="100"
+            style="width: 100%"
+          />
+          <div style="margin-top: 8px; font-size: 12px; color: #909399">
+            시험 생성 후 자동으로 {{questionCountInput}}개의 빈 문제가 추가됩니다
+          </div>
         </el-form-item>
       </el-form>
 

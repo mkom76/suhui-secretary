@@ -36,24 +36,28 @@ public class DataInitializer {
             student1.setName("김철수");
             student1.setGrade("고1");
             student1.setSchool("서울고등학교");
+            student1.setAcademy("강남학원");
             student1 = studentRepository.save(student1);
 
             Student student2 = new Student();
             student2.setName("이영희");
             student2.setGrade("고2");
             student2.setSchool("서울고등학교");
+            student2.setAcademy("강남학원");
             student2 = studentRepository.save(student2);
 
             Student student3 = new Student();
             student3.setName("박민수");
             student3.setGrade("고1");
             student3.setSchool("강남고등학교");
+            student3.setAcademy("대치학원");
             student3 = studentRepository.save(student3);
 
             Student student4 = new Student();
             student4.setName("정수진");
             student4.setGrade("고3");
             student4.setSchool("강남고등학교");
+            student4.setAcademy("대치학원");
             student4 = studentRepository.save(student4);
 
             log.info("Created {} students", 4);
@@ -75,31 +79,45 @@ public class DataInitializer {
 
             // 3. 시험 문제 생성 (test1)
             List<TestQuestion> test1Questions = new ArrayList<>();
+            double test1BasePoints = Math.floor((100.0 / 10) * 10) / 10;
             for (int i = 1; i <= 10; i++) {
                 TestQuestion question = new TestQuestion();
                 question.setTest(test1);
                 question.setNumber(i);
                 question.setAnswer(String.valueOf((i % 5) + 1)); // 정답: 1~5 반복
+                question.setPoints(test1BasePoints); // 각 10.0점
                 test1Questions.add(testQuestionRepository.save(question));
             }
 
             // 시험 문제 생성 (test2)
             List<TestQuestion> test2Questions = new ArrayList<>();
+            double test2BasePoints = Math.floor((100.0 / 15) * 10) / 10;
+            double test2UsedPoints = 0;
             for (int i = 1; i <= 15; i++) {
                 TestQuestion question = new TestQuestion();
                 question.setTest(test2);
                 question.setNumber(i);
                 question.setAnswer(String.valueOf((i % 5) + 1)); // 정답: 1~5 반복
+
+                // 마지막 문제에 남은 점수 할당
+                if (i == 15) {
+                    question.setPoints(Math.round((100 - test2UsedPoints) * 10) / 10.0);
+                } else {
+                    question.setPoints(test2BasePoints);
+                    test2UsedPoints += test2BasePoints;
+                }
                 test2Questions.add(testQuestionRepository.save(question));
             }
 
             // 시험 문제 생성 (test3)
             List<TestQuestion> test3Questions = new ArrayList<>();
+            double test3BasePoints = Math.floor((100.0 / 20) * 10) / 10;
             for (int i = 1; i <= 20; i++) {
                 TestQuestion question = new TestQuestion();
                 question.setTest(test3);
                 question.setNumber(i);
                 question.setAnswer(String.valueOf((i % 5) + 1)); // 정답: 1~5 반복
+                question.setPoints(test3BasePoints); // 각 5.0점
                 test3Questions.add(testQuestionRepository.save(question));
             }
 

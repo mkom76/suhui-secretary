@@ -26,9 +26,12 @@ public class TestQuestion {
     
     @Column(nullable = false)
     private Integer number;
-    
+
     private String answer;
-    
+
+    @Column(nullable = false)
+    private Double points;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     @Builder.Default
     private List<StudentSubmissionDetail> submissionDetails = new ArrayList<>();

@@ -29,6 +29,7 @@ interface Question {
   id?: number;
   number: number;
   answer: string;
+  points: number;
 }
 
 interface Submission {
