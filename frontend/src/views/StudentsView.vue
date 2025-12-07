@@ -1,0 +1,267 @@
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { studentAPI, type Student } from '../api/client'
+
+const loading = ref(false)
+const students = ref<Student[]>([])
+const searchQuery = ref('')
+const dialogVisible = ref(false)
+const editMode = ref(false)
+const currentStudent = ref<Student>({ name: '', grade: '', school: '', academy: '' })
+
+const tableData = computed(() => {
+  if (!searchQuery.value) return students.value
+  return students.value.filter(student =>
+    (student.name || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    (student.grade || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    (student.school || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    (student.academy || '').toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+
+const fetchStudents = async () => {
+  loading.value = true
+  try {
+    const response = await studentAPI.getStudents()
+    students.value = response.data.content || response.data
+  } catch (error) {
+    ElMessage.error('학생 목록을 불러오는데 실패했습니다.')
+  } finally {
+    loading.value = false
+  }
+}
+
+const openAddDialog = () => {
+  editMode.value = false
+  currentStudent.value = { name: '', grade: '', school: '', academy: '' }
+  dialogVisible.value = true
+}
+
+const openEditDialog = (student: Student) => {
+  editMode.value = true
+  currentStudent.value = { ...student }
+  dialogVisible.value = true
+}
+
+const handleSubmit = async () => {
+  try {
+    if (editMode.value && currentStudent.value.id) {
+      await studentAPI.updateStudent(currentStudent.value.id, currentStudent.value)
+      ElMessage.success('학생 정보가 수정되었습니다.')
+    } else {
+      await studentAPI.createStudent(currentStudent.value)
+      ElMessage.success('학생이 추가되었습니다.')
+    }
+    dialogVisible.value = false
+    fetchStudents()
+  } catch (error) {
+    ElMessage.error('작업을 완료할 수 없습니다.')
+  }
+}
+
+const handleDelete = async (student: Student) => {
+  if (!student.id) return
+  
+  try {
+    await ElMessageBox.confirm(
+      `${student.name} 학생을 삭제하시겠습니까?`,
+      '삭제 확인',
+      {
+        confirmButtonText: '삭제',
+        cancelButtonText: '취소',
+        type: 'warning',
+      }
+    )
+    
+    await studentAPI.deleteStudent(student.id)
+    ElMessage.success('학생이 삭제되었습니다.')
+    fetchStudents()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('삭제에 실패했습니다.')
+    }
+  }
+}
+
+onMounted(() => {
+  fetchStudents()
+})
+</script>
+
+<template>
+  <div>
+    <!-- Header -->
+    <el-card shadow="never" style="margin-bottom: 24px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <div>
+          <h1 style="margin: 0; font-size: 28px; font-weight: 600; color: #303133; display: flex; align-items: center; gap: 12px">
+            <el-icon size="32" color="#409eff">
+              <User />
+            </el-icon>
+            학생 관리
+          </h1>
+          <p style="margin: 8px 0 0; color: #909399">학생 정보를 등록하고 관리합니다</p>
+        </div>
+        <el-button type="primary" @click="openAddDialog" :icon="Plus" size="large">
+          학생 추가
+        </el-button>
+      </div>
+    </el-card>
+
+    <!-- Search and Filters -->
+    <el-card shadow="never" style="margin-bottom: 24px">
+      <el-row :gutter="16" align="middle">
+        <el-col :span="8">
+          <el-input
+            v-model="searchQuery"
+            placeholder="학생명, 학년, 학교, 학원으로 검색"
+            :prefix-icon="Search"
+            clearable
+            size="large"
+          />
+        </el-col>
+        <el-col :span="4">
+          <el-button @click="fetchStudents" :icon="Refresh" size="large">
+            새로고침
+          </el-button>
+        </el-col>
+      </el-row>
+    </el-card>
+
+    <!-- Students Table -->
+    <el-card shadow="never">
+      <el-table 
+        :data="tableData" 
+        v-loading="loading"
+        style="width: 100%"
+        stripe
+      >
+        <el-table-column prop="name" label="학생명" min-width="120">
+          <template #default="{ row }">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <el-avatar size="small" :icon="UserFilled" />
+              <span style="font-weight: 500">{{ row.name }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        
+        <el-table-column prop="grade" label="학년" min-width="100">
+          <template #default="{ row }">
+            <el-tag type="info">{{ row.grade }}</el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="school" label="학교" min-width="150">
+          <template #default="{ row }">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <el-icon color="#909399">
+                <School />
+              </el-icon>
+              {{ row.school }}
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="academy" label="학원" min-width="150">
+          <template #default="{ row }">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <el-icon color="#67c23a">
+                <OfficeBuilding />
+              </el-icon>
+              {{ row.academy }}
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="작업" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-button
+              size="small"
+              type="primary"
+              circle
+              @click="openEditDialog(row)"
+            >
+              <el-icon><Edit /></el-icon>
+            </el-button>
+            <el-button
+              size="small"
+              type="danger"
+              circle
+              @click="handleDelete(row)"
+            >
+              <el-icon><Delete /></el-icon>
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+
+    <!-- Add/Edit Dialog -->
+    <el-dialog 
+      v-model="dialogVisible"
+      :title="editMode ? '학생 정보 수정' : '새 학생 추가'"
+      width="500px"
+      :before-close="() => dialogVisible = false"
+    >
+      <el-form 
+        :model="currentStudent" 
+        label-width="80px"
+        label-position="left"
+      >
+        <el-form-item label="학생명" required>
+          <el-input 
+            v-model="currentStudent.name" 
+            placeholder="학생명을 입력하세요"
+            :prefix-icon="User"
+          />
+        </el-form-item>
+        
+        <el-form-item label="학년" required>
+          <el-input
+            v-model="currentStudent.grade"
+            placeholder="학년을 입력하세요 (예: 중1, 고2)"
+          />
+        </el-form-item>
+
+        <el-form-item label="학교" required>
+          <el-input
+            v-model="currentStudent.school"
+            placeholder="학교명을 입력하세요"
+          />
+        </el-form-item>
+
+        <el-form-item label="학원" required>
+          <el-input
+            v-model="currentStudent.academy"
+            placeholder="학원명을 입력하세요"
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span>
+          <el-button @click="dialogVisible = false">취소</el-button>
+          <el-button
+            type="primary"
+            @click="handleSubmit"
+            :disabled="!currentStudent.name || !currentStudent.grade || !currentStudent.school || !currentStudent.academy"
+          >
+            {{ editMode ? '수정' : '추가' }}
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<style scoped>
+.el-card {
+  border-radius: 8px;
+}
+
+.el-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+</style>

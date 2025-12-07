@@ -1,0 +1,48 @@
+package com.example.controller;
+
+import com.example.dto.StudentDto;
+import com.example.service.StudentService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/students")
+@RequiredArgsConstructor
+public class StudentController {
+    private final StudentService studentService;
+    
+    @GetMapping
+    public ResponseEntity<Page<StudentDto>> getStudents(
+            @RequestParam(required = false) String name,
+            Pageable pageable) {
+        return ResponseEntity.ok(studentService.getStudents(name, pageable));
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<StudentDto> getStudent(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudent(id));
+    }
+    
+    @PostMapping
+    public ResponseEntity<StudentDto> createStudent(@RequestBody StudentDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(studentService.createStudent(dto));
+    }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<StudentDto> updateStudent(
+            @PathVariable Long id, 
+            @RequestBody StudentDto dto) {
+        return ResponseEntity.ok(studentService.updateStudent(id, dto));
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
+        studentService.deleteStudent(id);
+        return ResponseEntity.noContent().build();
+    }
+}
