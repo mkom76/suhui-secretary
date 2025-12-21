@@ -48,6 +48,10 @@ const handleSelect = (index: string) => {
               <el-icon><Document /></el-icon>
               시험 관리
             </el-menu-item>
+            <el-menu-item index="/homeworks">
+              <el-icon><Notebook /></el-icon>
+              숙제 관리
+            </el-menu-item>
           </el-menu>
         </el-col>
         

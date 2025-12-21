@@ -22,6 +22,17 @@ const submissions = ref<Submission[]>([])
 const feedbacks = ref<Feedback[]>([])
 const testStats = ref<Record<number, any>>({})
 
+// 모달 상태
+const chartModalVisible = ref(false)
+
+// 확대/축소 및 이동 상태
+const zoom = ref(1)
+const panX = ref(0)
+const panY = ref(0)
+const isDragging = ref(false)
+const dragStartX = ref(0)
+const dragStartY = ref(0)
+
 // 차트 포인트 계산 (모든 좌표 사전 계산)
 const chartPoints = computed(() => {
   if (submissions.value.length === 0) return []
@@ -84,6 +95,51 @@ const maxScore = computed(() => {
 const minScore = computed(() => {
   if (submissions.value.length === 0) return 0
   return Math.min(...submissions.value.map(s => s.totalScore))
+})
+
+// 모달 열기
+const openChartModal = () => {
+  chartModalVisible.value = true
+  resetZoomAndPan()
+}
+
+// 줌/팬 초기화
+const resetZoomAndPan = () => {
+  zoom.value = 1
+  panX.value = 0
+  panY.value = 0
+}
+
+// 마우스 휠로 줌
+const handleWheel = (event: WheelEvent) => {
+  event.preventDefault()
+  const delta = event.deltaY > 0 ? 0.9 : 1.1
+  const newZoom = Math.max(0.5, Math.min(5, zoom.value * delta))
+  zoom.value = newZoom
+}
+
+// 드래그 시작
+const handleMouseDown = (event: MouseEvent) => {
+  isDragging.value = true
+  dragStartX.value = event.clientX - panX.value
+  dragStartY.value = event.clientY - panY.value
+}
+
+// 드래그 중
+const handleMouseMove = (event: MouseEvent) => {
+  if (!isDragging.value) return
+  panX.value = event.clientX - dragStartX.value
+  panY.value = event.clientY - dragStartY.value
+}
+
+// 드래그 종료
+const handleMouseUp = () => {
+  isDragging.value = false
+}
+
+// SVG 변환 계산
+const svgTransform = computed(() => {
+  return `translate(${panX.value}, ${panY.value}) scale(${zoom.value})`
 })
 
 const fetchStudentDetail = async () => {
@@ -239,10 +295,11 @@ onMounted(() => {
           </el-row>
 
           <!-- 꺾은선 그래프 -->
-          <div v-if="chartPoints && chartPoints.length > 0" style="margin-top: 24px; padding: 20px; background: #fafafa; border-radius: 8px">
+          <div v-if="chartPoints && chartPoints.length > 0" style="margin-top: 24px; padding: 20px; background: #fafafa; border-radius: 8px; cursor: pointer; transition: all 0.3s" @click="openChartModal">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
               <div style="font-weight: 600; color: #303133">점수 추이</div>
-              <div style="display: flex; gap: 16px; font-size: 12px">
+              <div style="display: flex; gap: 16px; font-size: 12px; align-items: center">
+                <el-button type="primary" size="small" :icon="ZoomIn" @click.stop="openChartModal">확대하여 보기</el-button>
                 <div style="display: flex; align-items: center; gap: 4px">
                   <div style="width: 16px; height: 3px; background: #409eff; border-radius: 2px"></div>
                   <span style="color: #606266">내 점수</span>
@@ -434,6 +491,153 @@ onMounted(() => {
         </template>
       </el-empty>
     </el-card>
+
+    <!-- 차트 확대 모달 -->
+    <el-dialog
+      v-model="chartModalVisible"
+      title="점수 추이 상세"
+      width="90%"
+      top="5vh"
+      :close-on-click-modal="false"
+    >
+      <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center">
+        <div style="display: flex; gap: 16px; font-size: 14px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="width: 20px; height: 4px; background: #409eff; border-radius: 2px"></div>
+            <span style="color: #606266">내 점수</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="width: 20px; height: 4px; background: #67c23a; border-radius: 2px"></div>
+            <span style="color: #606266">학원 평균</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center">
+          <span style="color: #909399; font-size: 13px">확대: {{ Math.round(zoom * 100) }}%</span>
+          <el-button size="small" @click="resetZoomAndPan" :icon="Refresh">초기화</el-button>
+        </div>
+      </div>
+
+      <div
+        style="
+          background: #fafafa;
+          border-radius: 8px;
+          overflow: hidden;
+          position: relative;
+          height: 600px;
+        "
+        @wheel="handleWheel"
+        @mousedown="handleMouseDown"
+        @mousemove="handleMouseMove"
+        @mouseup="handleMouseUp"
+        @mouseleave="handleMouseUp"
+      >
+        <svg
+          viewBox="0 0 700 250"
+          style="width: 100%; height: 100%; cursor: grab"
+          :style="{ cursor: isDragging ? 'grabbing' : 'grab' }"
+        >
+          <g :transform="svgTransform" style="transform-origin: center">
+            <!-- 배경 격자선 -->
+            <line x1="60" y1="30" x2="680" y2="30" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4" />
+            <line x1="60" y1="70" x2="680" y2="70" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4" />
+            <line x1="60" y1="110" x2="680" y2="110" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4" />
+            <line x1="60" y1="150" x2="680" y2="150" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4" />
+            <line x1="60" y1="190" x2="680" y2="190" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4" />
+
+            <!-- Y축 레이블 -->
+            <text x="50" y="35" text-anchor="end" font-size="12" fill="#909399">100</text>
+            <text x="50" y="75" text-anchor="end" font-size="12" fill="#909399">75</text>
+            <text x="50" y="115" text-anchor="end" font-size="12" fill="#909399">50</text>
+            <text x="50" y="155" text-anchor="end" font-size="12" fill="#909399">25</text>
+            <text x="50" y="195" text-anchor="end" font-size="12" fill="#909399">0</text>
+
+            <!-- X축 -->
+            <line x1="60" y1="190" x2="680" y2="190" stroke="#303133" stroke-width="2" />
+
+            <!-- 학원 평균 선 -->
+            <polyline
+              v-if="chartPoints.length > 1"
+              :points="academyLinePoints"
+              fill="none" stroke="#67c23a" stroke-width="2.5"
+            />
+
+            <!-- 내 점수 선 -->
+            <polyline
+              v-if="chartPoints.length > 1"
+              :points="studentLinePoints"
+              fill="none" stroke="#409eff" stroke-width="3"
+            />
+
+            <!-- 데이터 포인트 및 레이블 -->
+            <template v-for="(point, index) in chartPoints" :key="index">
+              <!-- X축 레이블 -->
+              <text
+                :x="point.x"
+                y="210"
+                text-anchor="middle"
+                font-size="12"
+                fill="#606266"
+              >
+                {{ point.date }}
+              </text>
+
+              <!-- 학원 평균 점 -->
+              <circle
+                :cx="point.x"
+                :cy="point.academyY"
+                r="6"
+                fill="#67c23a"
+                stroke="white"
+                stroke-width="2"
+              />
+
+              <!-- 내 점수 점 -->
+              <circle
+                :cx="point.x"
+                :cy="point.studentY"
+                r="7"
+                fill="#409eff"
+                stroke="white"
+                stroke-width="2"
+              >
+                <title>{{ point.studentScore }}점 (평균: {{ point.academyAverage }}점)</title>
+              </circle>
+
+              <!-- 점수 레이블 -->
+              <text
+                :x="point.x"
+                :y="point.labelY"
+                text-anchor="middle"
+                font-size="14"
+                font-weight="600"
+                fill="#409eff"
+              >
+                {{ point.studentScore }}
+              </text>
+
+              <!-- 학원 평균 레이블 -->
+              <text
+                :x="point.x"
+                :y="point.academyY + 20"
+                text-anchor="middle"
+                font-size="12"
+                font-weight="500"
+                fill="#67c23a"
+              >
+                {{ Math.round(point.academyAverage) }}
+              </text>
+            </template>
+          </g>
+        </svg>
+      </div>
+
+      <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px; font-size: 13px; color: #606266">
+        <div style="font-weight: 600; margin-bottom: 8px; color: #409eff">사용 방법</div>
+        <div>• 마우스 휠: 확대/축소</div>
+        <div>• 클릭 & 드래그: 차트 이동</div>
+        <div>• 초기화 버튼: 원래 크기로 복원</div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -445,5 +649,11 @@ onMounted(() => {
 .el-table {
   border-radius: 8px;
   overflow: hidden;
+}
+
+/* 차트 호버 효과 */
+div[style*="cursor: pointer"]:hover {
+  background: #f0f9ff !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 </style>

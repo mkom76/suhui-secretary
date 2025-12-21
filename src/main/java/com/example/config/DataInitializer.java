@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +27,8 @@ public class DataInitializer {
             TestQuestionRepository testQuestionRepository,
             StudentSubmissionRepository studentSubmissionRepository,
             StudentSubmissionDetailRepository studentSubmissionDetailRepository,
-            TeacherFeedbackRepository teacherFeedbackRepository
+            TeacherFeedbackRepository teacherFeedbackRepository,
+            HomeworkRepository homeworkRepository
     ) {
         return args -> {
             log.info("Initializing sample data...");
@@ -307,6 +309,51 @@ public class DataInitializer {
 
             log.info("Created {} teacher feedbacks", 6);
 
+            // 8. 숙제 데이터 생성
+            Homework homework1 = new Homework();
+            homework1.setTitle("수학 기본 개념 문제집");
+            homework1.setQuestionCount(30);
+            homework1.setMemo("1단원부터 3단원까지의 기본 개념 문제입니다. 다음 주 월요일까지 풀어오세요.");
+            homework1.setDueDate(LocalDate.now().plusDays(8)); // 8일 후
+            homeworkRepository.save(homework1);
+
+            Homework homework2 = new Homework();
+            homework2.setTitle("영어 독해 연습 문제");
+            homework2.setQuestionCount(20);
+            homework2.setMemo("교과서 본문 5개 지문 독해 문제입니다. 해석과 함께 제출하세요.");
+            homework2.setDueDate(LocalDate.now().plusDays(2)); // 2일 후 (곧 마감)
+            homeworkRepository.save(homework2);
+
+            Homework homework3 = new Homework();
+            homework3.setTitle("과학 실험 보고서 작성");
+            homework3.setQuestionCount(5);
+            homework3.setMemo("지난주 실험 내용을 바탕으로 보고서를 작성하세요. 각 문항은 실험 결과 분석 질문입니다.");
+            homework3.setDueDate(LocalDate.now().plusDays(5)); // 5일 후
+            homeworkRepository.save(homework3);
+
+            Homework homework4 = new Homework();
+            homework4.setTitle("한국사 연표 정리");
+            homework4.setQuestionCount(15);
+            homework4.setMemo("조선시대 주요 사건 15가지를 연표로 정리하고 각 사건의 의미를 서술하세요.");
+            homework4.setDueDate(LocalDate.now().minusDays(2)); // 2일 전 (마감 지남)
+            homeworkRepository.save(homework4);
+
+            Homework homework5 = new Homework();
+            homework5.setTitle("수학 심화 문제 풀이");
+            homework5.setQuestionCount(50);
+            homework5.setMemo("고난도 문제 50문제입니다. 오답 노트와 함께 제출하세요. 이번 주말까지 완료.");
+            homework5.setDueDate(LocalDate.now().plusDays(1)); // 1일 후 (곧 마감)
+            homeworkRepository.save(homework5);
+
+            Homework homework6 = new Homework();
+            homework6.setTitle("영어 단어 암기 테스트");
+            homework6.setQuestionCount(100);
+            homework6.setMemo("단어장 Chapter 5-7까지 총 100개 단어입니다. 금요일 쪽지 시험 예정.");
+            homework6.setDueDate(LocalDate.now().plusDays(4)); // 4일 후
+            homeworkRepository.save(homework6);
+
+            log.info("Created {} homeworks", 6);
+
             log.info("Sample data initialization completed successfully!");
             log.info("===================================================");
             log.info("Summary:");
@@ -315,6 +362,7 @@ public class DataInitializer {
             log.info("- Test Questions: 45");
             log.info("- Student Submissions: 7");
             log.info("- Teacher Feedbacks: 6");
+            log.info("- Homeworks: 6");
             log.info("===================================================");
         };
     }

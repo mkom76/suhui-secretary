@@ -58,6 +58,16 @@ interface Feedback {
   updatedAt?: string;
 }
 
+interface Homework {
+  id?: number;
+  title: string;
+  questionCount: number;
+  memo?: string;
+  dueDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 // Students API
 export const studentAPI = {
   getStudents: (params?: any) => client.get('/students', { params }),
@@ -94,13 +104,22 @@ export const submissionAPI = {
 // Feedback API
 export const feedbackAPI = {
   getByTestId: (testId: number) => client.get(`/feedback/test/${testId}`),
-  create: (data: Omit<Feedback, 'id' | 'submission' | 'createdAt'> & { submissionId: number }) => 
+  create: (data: Omit<Feedback, 'id' | 'submission' | 'createdAt'> & { submissionId: number }) =>
     client.post('/feedback', data),
   delete: (id: number) => client.delete(`/feedback/${id}`),
   getStudentFeedbacks: (studentId: number) => client.get(`/feedback/student/${studentId}`),
   updateFeedback: (id: number, data: Feedback) => client.put(`/feedback/${id}`, data),
 };
 
+// Homeworks API
+export const homeworkAPI = {
+  getHomeworks: (params?: any) => client.get('/homeworks', { params }),
+  getHomework: (id: number) => client.get(`/homeworks/${id}`),
+  createHomework: (data: Homework) => client.post('/homeworks', data),
+  updateHomework: (id: number, data: Homework) => client.put(`/homeworks/${id}`, data),
+  deleteHomework: (id: number) => client.delete(`/homeworks/${id}`),
+};
+
 export default client;
 
-export type { Student, Test, Question, Submission, Feedback };
+export type { Student, Test, Question, Submission, Feedback, Homework };
