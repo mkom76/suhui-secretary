@@ -9,40 +9,28 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "homeworks")
+@Table(name = "academy_classes")
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Homework {
+public class AcademyClass {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String title;
-
-    @Column(nullable = false)
-    private Integer questionCount;
-
-    @Column(columnDefinition = "TEXT")
-    private String memo;
-
-    @Column(name = "due_date")
-    private LocalDate dueDate;
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "academy_id", nullable = false)
     private Academy academy;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id", nullable = false)
-    private AcademyClass academyClass;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -51,4 +39,16 @@ public class Homework {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "academyClass", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Student> students = new ArrayList<>();
+
+    @OneToMany(mappedBy = "academyClass", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Test> tests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "academyClass", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Homework> homeworks = new ArrayList<>();
 }

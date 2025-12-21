@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { studentAPI, type Student } from '../api/client'
+import { studentAPI, academyAPI, academyClassAPI, type Student, type Academy, type AcademyClass } from '../api/client'
 
 const router = useRouter()
 
 const loading = ref(false)
 const students = ref<Student[]>([])
+const academies = ref<Academy[]>([])
+const allClasses = ref<AcademyClass[]>([])
 const searchQuery = ref('')
 const dialogVisible = ref(false)
 const editMode = ref(false)
-const currentStudent = ref<Student>({ name: '', grade: '', school: '', academy: '' })
+const currentStudent = ref<Student>({ name: '', grade: '', school: '', academyId: undefined, classId: undefined })
+
+const availableClasses = computed(() => {
+  if (!currentStudent.value.academyId) return []
+  return allClasses.value.filter(cls => cls.academyId === currentStudent.value.academyId)
+})
 
 const tableData = computed(() => {
   if (!searchQuery.value) return students.value
@@ -19,8 +26,13 @@ const tableData = computed(() => {
     (student.name || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
     (student.grade || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
     (student.school || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    (student.academy || '').toLowerCase().includes(searchQuery.value.toLowerCase())
+    (student.academyName || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    (student.className || '').toLowerCase().includes(searchQuery.value.toLowerCase())
   )
+})
+
+watch(() => currentStudent.value.academyId, () => {
+  currentStudent.value.classId = undefined
 })
 
 const fetchStudents = async () => {
@@ -35,9 +47,27 @@ const fetchStudents = async () => {
   }
 }
 
+const fetchAcademies = async () => {
+  try {
+    const response = await academyAPI.getAcademies()
+    academies.value = response.data.content || response.data
+  } catch (error) {
+    ElMessage.error('학원 목록을 불러오는데 실패했습니다.')
+  }
+}
+
+const fetchClasses = async () => {
+  try {
+    const response = await academyClassAPI.getAcademyClasses()
+    allClasses.value = response.data.content || response.data
+  } catch (error) {
+    ElMessage.error('반 목록을 불러오는데 실패했습니다.')
+  }
+}
+
 const openAddDialog = () => {
   editMode.value = false
-  currentStudent.value = { name: '', grade: '', school: '', academy: '' }
+  currentStudent.value = { name: '', grade: '', school: '', academyId: undefined, classId: undefined }
   dialogVisible.value = true
 }
 
@@ -48,6 +78,11 @@ const openEditDialog = (student: Student) => {
 }
 
 const handleSubmit = async () => {
+  if (!currentStudent.value.academyId || !currentStudent.value.classId) {
+    ElMessage.error('학원과 반을 선택해주세요.')
+    return
+  }
+
   try {
     if (editMode.value && currentStudent.value.id) {
       await studentAPI.updateStudent(currentStudent.value.id, currentStudent.value)
@@ -93,6 +128,8 @@ const navigateToDetail = (studentId: number) => {
 
 onMounted(() => {
   fetchStudents()
+  fetchAcademies()
+  fetchClasses()
 })
 </script>
 
@@ -173,14 +210,20 @@ onMounted(() => {
           </template>
         </el-table-column>
 
-        <el-table-column prop="academy" label="학원" min-width="150">
+        <el-table-column prop="academyName" label="학원" min-width="150">
           <template #default="{ row }">
             <div style="display: flex; align-items: center; gap: 8px">
               <el-icon color="#67c23a">
                 <OfficeBuilding />
               </el-icon>
-              {{ row.academy }}
+              {{ row.academyName }}
             </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="className" label="반" min-width="150">
+          <template #default="{ row }">
+            <el-tag type="success">{{ row.className }}</el-tag>
           </template>
         </el-table-column>
 
@@ -242,10 +285,34 @@ onMounted(() => {
         </el-form-item>
 
         <el-form-item label="학원" required>
-          <el-input
-            v-model="currentStudent.academy"
-            placeholder="학원명을 입력하세요"
-          />
+          <el-select
+            v-model="currentStudent.academyId"
+            placeholder="학원을 선택하세요"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="academy in academies"
+              :key="academy.id"
+              :label="academy.name"
+              :value="academy.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="반" required>
+          <el-select
+            v-model="currentStudent.classId"
+            placeholder="반을 선택하세요"
+            :disabled="!currentStudent.academyId"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="cls in availableClasses"
+              :key="cls.id"
+              :label="cls.name"
+              :value="cls.id"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       
@@ -255,7 +322,7 @@ onMounted(() => {
           <el-button
             type="primary"
             @click="handleSubmit"
-            :disabled="!currentStudent.name || !currentStudent.grade || !currentStudent.school || !currentStudent.academy"
+            :disabled="!currentStudent.name || !currentStudent.grade || !currentStudent.school || !currentStudent.academyId || !currentStudent.classId"
           >
             {{ editMode ? '수정' : '추가' }}
           </el-button>

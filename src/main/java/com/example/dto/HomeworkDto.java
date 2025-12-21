@@ -19,6 +19,10 @@ public class HomeworkDto {
     private Integer questionCount;
     private String memo;
     private LocalDate dueDate;
+    private Long academyId;
+    private String academyName;
+    private Long classId;
+    private String className;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -29,18 +33,12 @@ public class HomeworkDto {
                 .questionCount(homework.getQuestionCount())
                 .memo(homework.getMemo())
                 .dueDate(homework.getDueDate())
+                .academyId(homework.getAcademy() != null ? homework.getAcademy().getId() : null)
+                .academyName(homework.getAcademy() != null ? homework.getAcademy().getName() : null)
+                .classId(homework.getAcademyClass() != null ? homework.getAcademyClass().getId() : null)
+                .className(homework.getAcademyClass() != null ? homework.getAcademyClass().getName() : null)
                 .createdAt(homework.getCreatedAt())
                 .updatedAt(homework.getUpdatedAt())
-                .build();
-    }
-
-    public Homework toEntity() {
-        return Homework.builder()
-                .id(this.id)
-                .title(this.title)
-                .questionCount(this.questionCount)
-                .memo(this.memo)
-                .dueDate(this.dueDate)
                 .build();
     }
 }

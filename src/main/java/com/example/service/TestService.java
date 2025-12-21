@@ -22,6 +22,8 @@ public class TestService {
     private final StudentSubmissionRepository studentSubmissionRepository;
     private final StudentSubmissionDetailRepository studentSubmissionDetailRepository;
     private final StudentRepository studentRepository;
+    private final AcademyRepository academyRepository;
+    private final AcademyClassRepository academyClassRepository;
     
     public Page<TestDto> getTests(Pageable pageable) {
         return testRepository.findAll(pageable).map(TestDto::from);
@@ -34,16 +36,39 @@ public class TestService {
     }
     
     public TestDto createTest(TestDto dto) {
-        Test test = dto.toEntity();
+        Academy academy = academyRepository.findById(dto.getAcademyId())
+                .orElseThrow(() -> new RuntimeException("Academy not found"));
+        AcademyClass academyClass = academyClassRepository.findById(dto.getClassId())
+                .orElseThrow(() -> new RuntimeException("Class not found"));
+
+        Test test = Test.builder()
+                .title(dto.getTitle())
+                .academy(academy)
+                .academyClass(academyClass)
+                .build();
+
         test = testRepository.save(test);
         return TestDto.from(test);
     }
-    
+
     public TestDto updateTest(Long id, TestDto dto) {
         Test test = testRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Test not found"));
-        
+
         test.setTitle(dto.getTitle());
+
+        if (dto.getAcademyId() != null && !dto.getAcademyId().equals(test.getAcademy().getId())) {
+            Academy academy = academyRepository.findById(dto.getAcademyId())
+                    .orElseThrow(() -> new RuntimeException("Academy not found"));
+            test.setAcademy(academy);
+        }
+
+        if (dto.getClassId() != null && !dto.getClassId().equals(test.getAcademyClass().getId())) {
+            AcademyClass academyClass = academyClassRepository.findById(dto.getClassId())
+                    .orElseThrow(() -> new RuntimeException("Class not found"));
+            test.setAcademyClass(academyClass);
+        }
+
         test = testRepository.save(test);
         return TestDto.from(test);
     }

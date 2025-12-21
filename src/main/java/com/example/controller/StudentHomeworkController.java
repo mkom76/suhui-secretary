@@ -1,0 +1,44 @@
+package com.example.controller;
+
+import com.example.dto.StudentHomeworkDto;
+import com.example.service.StudentHomeworkService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/student-homeworks")
+@RequiredArgsConstructor
+public class StudentHomeworkController {
+    private final StudentHomeworkService studentHomeworkService;
+
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<List<StudentHomeworkDto>> getByStudentId(@PathVariable Long studentId) {
+        return ResponseEntity.ok(studentHomeworkService.getByStudentId(studentId));
+    }
+
+    @GetMapping("/homework/{homeworkId}")
+    public ResponseEntity<List<StudentHomeworkDto>> getByHomeworkId(@PathVariable Long homeworkId) {
+        return ResponseEntity.ok(studentHomeworkService.getByHomeworkId(homeworkId));
+    }
+
+    @PutMapping("/student/{studentId}/homework/{homeworkId}")
+    public ResponseEntity<StudentHomeworkDto> updateCompletion(
+            @PathVariable Long studentId,
+            @PathVariable Long homeworkId,
+            @RequestBody Map<String, Integer> request) {
+        Integer completion = request.get("completion");
+        return ResponseEntity.ok(studentHomeworkService.updateCompletion(studentId, homeworkId, completion));
+    }
+
+    @DeleteMapping("/student/{studentId}/homework/{homeworkId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long studentId,
+            @PathVariable Long homeworkId) {
+        studentHomeworkService.deleteByStudentIdAndHomeworkId(studentId, homeworkId);
+        return ResponseEntity.noContent().build();
+    }
+}

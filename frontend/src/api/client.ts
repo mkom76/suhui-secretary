@@ -10,12 +10,31 @@ const client = axios.create({
 });
 
 // Types
+interface Academy {
+  id?: number;
+  name: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface AcademyClass {
+  id?: number;
+  name: string;
+  academyId?: number;
+  academyName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface Student {
   id?: number;
   name: string;
   grade: string;
   school: string;
-  academy: string;
+  academyId?: number;
+  academyName?: string;
+  classId?: number;
+  className?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -23,6 +42,10 @@ interface Student {
 interface Test {
   id?: number;
   title: string;
+  academyId?: number;
+  academyName?: string;
+  classId?: number;
+  className?: string;
   questionCount?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -64,9 +87,43 @@ interface Homework {
   questionCount: number;
   memo?: string;
   dueDate?: string;
+  academyId?: number;
+  academyName?: string;
+  classId?: number;
+  className?: string;
   createdAt?: string;
   updatedAt?: string;
 }
+
+interface StudentHomework {
+  id?: number;
+  studentId?: number;
+  studentName?: string;
+  homeworkId?: number;
+  homeworkTitle?: string;
+  completion?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Academies API
+export const academyAPI = {
+  getAcademies: (params?: any) => client.get('/academies', { params }),
+  getAcademy: (id: number) => client.get(`/academies/${id}`),
+  createAcademy: (data: Academy) => client.post('/academies', data),
+  updateAcademy: (id: number, data: Academy) => client.put(`/academies/${id}`, data),
+  deleteAcademy: (id: number) => client.delete(`/academies/${id}`),
+};
+
+// Academy Classes API
+export const academyClassAPI = {
+  getAcademyClasses: (params?: any) => client.get('/classes', { params }),
+  getClassesByAcademy: (academyId: number) => client.get(`/classes/academy/${academyId}`),
+  getAcademyClass: (id: number) => client.get(`/classes/${id}`),
+  createAcademyClass: (data: AcademyClass) => client.post('/classes', data),
+  updateAcademyClass: (id: number, data: AcademyClass) => client.put(`/classes/${id}`, data),
+  deleteAcademyClass: (id: number) => client.delete(`/classes/${id}`),
+};
 
 // Students API
 export const studentAPI = {
@@ -120,6 +177,16 @@ export const homeworkAPI = {
   deleteHomework: (id: number) => client.delete(`/homeworks/${id}`),
 };
 
+// Student Homeworks API
+export const studentHomeworkAPI = {
+  getByStudentId: (studentId: number) => client.get(`/student-homeworks/student/${studentId}`),
+  getByHomeworkId: (homeworkId: number) => client.get(`/student-homeworks/homework/${homeworkId}`),
+  updateCompletion: (studentId: number, homeworkId: number, completion: number) =>
+    client.put(`/student-homeworks/student/${studentId}/homework/${homeworkId}`, { completion }),
+  delete: (studentId: number, homeworkId: number) =>
+    client.delete(`/student-homeworks/student/${studentId}/homework/${homeworkId}`),
+};
+
 export default client;
 
-export type { Student, Test, Question, Submission, Feedback, Homework };
+export type { Academy, AcademyClass, Student, Test, Question, Submission, Feedback, Homework, StudentHomework };

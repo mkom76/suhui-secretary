@@ -9,40 +9,30 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "homeworks")
+@Table(name = "student_homeworks")
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Homework {
+public class StudentHomework {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String title;
-
-    @Column(nullable = false)
-    private Integer questionCount;
-
-    @Column(columnDefinition = "TEXT")
-    private String memo;
-
-    @Column(name = "due_date")
-    private LocalDate dueDate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
+    private Student student;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "academy_id", nullable = false)
-    private Academy academy;
+    @JoinColumn(name = "homework_id", nullable = false)
+    private Homework homework;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id", nullable = false)
-    private AcademyClass academyClass;
+    @Column(name = "completion")
+    private Integer completion; // 0-100
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

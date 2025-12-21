@@ -1,0 +1,60 @@
+package com.example.service;
+
+import com.example.dto.StudentHomeworkDto;
+import com.example.entity.Homework;
+import com.example.entity.Student;
+import com.example.entity.StudentHomework;
+import com.example.repository.HomeworkRepository;
+import com.example.repository.StudentHomeworkRepository;
+import com.example.repository.StudentRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class StudentHomeworkService {
+    private final StudentHomeworkRepository studentHomeworkRepository;
+    private final StudentRepository studentRepository;
+    private final HomeworkRepository homeworkRepository;
+
+    public List<StudentHomeworkDto> getByStudentId(Long studentId) {
+        return studentHomeworkRepository.findByStudentId(studentId).stream()
+                .map(StudentHomeworkDto::from)
+                .collect(Collectors.toList());
+    }
+
+    public List<StudentHomeworkDto> getByHomeworkId(Long homeworkId) {
+        return studentHomeworkRepository.findByHomeworkId(homeworkId).stream()
+                .map(StudentHomeworkDto::from)
+                .collect(Collectors.toList());
+    }
+
+    public StudentHomeworkDto updateCompletion(Long studentId, Long homeworkId, Integer completion) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        Homework homework = homeworkRepository.findById(homeworkId)
+                .orElseThrow(() -> new RuntimeException("Homework not found"));
+
+        StudentHomework studentHomework = studentHomeworkRepository
+                .findByStudentIdAndHomeworkId(studentId, homeworkId)
+                .orElse(StudentHomework.builder()
+                        .student(student)
+                        .homework(homework)
+                        .build());
+
+        studentHomework.setCompletion(completion);
+        studentHomework = studentHomeworkRepository.save(studentHomework);
+
+        return StudentHomeworkDto.from(studentHomework);
+    }
+
+    public void deleteByStudentIdAndHomeworkId(Long studentId, Long homeworkId) {
+        studentHomeworkRepository.findByStudentIdAndHomeworkId(studentId, homeworkId)
+                .ifPresent(studentHomeworkRepository::delete);
+    }
+}

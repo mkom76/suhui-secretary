@@ -1,23 +1,36 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { testAPI, type Test } from '../api/client'
+import { testAPI, academyAPI, academyClassAPI, type Test, type Academy, type AcademyClass } from '../api/client'
 
 const router = useRouter()
 const loading = ref(false)
 const tests = ref<Test[]>([])
+const academies = ref<Academy[]>([])
+const allClasses = ref<AcademyClass[]>([])
 const searchQuery = ref('')
 const dialogVisible = ref(false)
 const editMode = ref(false)
-const currentTest = ref<Test>({ title: '' })
+const currentTest = ref<Test>({ title: '', academyId: undefined, classId: undefined })
 const questionCountInput = ref(10)
+
+const availableClasses = computed(() => {
+  if (!currentTest.value.academyId) return []
+  return allClasses.value.filter(cls => cls.academyId === currentTest.value.academyId)
+})
 
 const tableData = computed(() => {
   if (!searchQuery.value) return tests.value
   return tests.value.filter(test =>
-    (test.title || '').toLowerCase().includes(searchQuery.value.toLowerCase())
+    (test.title || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    (test.academyName || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    (test.className || '').toLowerCase().includes(searchQuery.value.toLowerCase())
   )
+})
+
+watch(() => currentTest.value.academyId, () => {
+  currentTest.value.classId = undefined
 })
 
 const fetchTests = async () => {
@@ -32,9 +45,27 @@ const fetchTests = async () => {
   }
 }
 
+const fetchAcademies = async () => {
+  try {
+    const response = await academyAPI.getAcademies()
+    academies.value = response.data.content || response.data
+  } catch (error) {
+    ElMessage.error('학원 목록을 불러오는데 실패했습니다.')
+  }
+}
+
+const fetchClasses = async () => {
+  try {
+    const response = await academyClassAPI.getAcademyClasses()
+    allClasses.value = response.data.content || response.data
+  } catch (error) {
+    ElMessage.error('반 목록을 불러오는데 실패했습니다.')
+  }
+}
+
 const openAddDialog = () => {
   editMode.value = false
-  currentTest.value = { title: '' }
+  currentTest.value = { title: '', academyId: undefined, classId: undefined }
   questionCountInput.value = 10
   dialogVisible.value = true
 }
@@ -46,6 +77,11 @@ const openEditDialog = (test: Test) => {
 }
 
 const handleSubmit = async () => {
+  if (!currentTest.value.academyId || !currentTest.value.classId) {
+    ElMessage.error('학원과 반을 선택해주세요.')
+    return
+  }
+
   try {
     if (editMode.value && currentTest.value.id) {
       await testAPI.updateTest(currentTest.value.id, currentTest.value)
@@ -129,6 +165,8 @@ const navigateToDetail = (testId: number) => {
 
 onMounted(() => {
   fetchTests()
+  fetchAcademies()
+  fetchClasses()
 })
 </script>
 
@@ -158,7 +196,7 @@ onMounted(() => {
         <el-col :span="8">
           <el-input
             v-model="searchQuery"
-            placeholder="시험명으로 검색"
+            placeholder="시험명, 학원, 반으로 검색"
             :prefix-icon="Search"
             clearable
             size="large"
@@ -199,7 +237,24 @@ onMounted(() => {
             <el-tag size="small" type="info">{{ row.questionCount || 0 }}문제</el-tag>
           </template>
         </el-table-column>
-        
+
+        <el-table-column prop="academyName" label="학원" width="150">
+          <template #default="{ row }">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <el-icon color="#67c23a">
+                <OfficeBuilding />
+              </el-icon>
+              {{ row.academyName }}
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="className" label="반" width="150">
+          <template #default="{ row }">
+            <el-tag type="success">{{ row.className }}</el-tag>
+          </template>
+        </el-table-column>
+
         <el-table-column label="등록일" width="120">
           <template #default="{ row }">
             <div style="display: flex; align-items: center; gap: 8px">
@@ -279,6 +334,37 @@ onMounted(() => {
           />
         </el-form-item>
 
+        <el-form-item label="학원" required>
+          <el-select
+            v-model="currentTest.academyId"
+            placeholder="학원을 선택하세요"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="academy in academies"
+              :key="academy.id"
+              :label="academy.name"
+              :value="academy.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="반" required>
+          <el-select
+            v-model="currentTest.classId"
+            placeholder="반을 선택하세요"
+            :disabled="!currentTest.academyId"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="cls in availableClasses"
+              :key="cls.id"
+              :label="cls.name"
+              :value="cls.id"
+            />
+          </el-select>
+        </el-form-item>
+
         <el-form-item v-if="!editMode" label="문제 수" required>
           <el-input-number
             v-model="questionCountInput"
@@ -298,7 +384,7 @@ onMounted(() => {
           <el-button
             type="primary"
             @click="handleSubmit"
-            :disabled="!currentTest.title"
+            :disabled="!currentTest.title || !currentTest.academyId || !currentTest.classId"
           >
             {{ editMode ? '수정' : '추가' }}
           </el-button>

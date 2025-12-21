@@ -22,59 +22,106 @@ public class DataInitializer {
     @Bean
     @Profile("!prod") // 운영 환경이 아닌 경우에만 실행
     CommandLineRunner initDatabase(
+            AcademyRepository academyRepository,
+            AcademyClassRepository academyClassRepository,
             StudentRepository studentRepository,
             TestRepository testRepository,
             TestQuestionRepository testQuestionRepository,
             StudentSubmissionRepository studentSubmissionRepository,
             StudentSubmissionDetailRepository studentSubmissionDetailRepository,
             TeacherFeedbackRepository teacherFeedbackRepository,
-            HomeworkRepository homeworkRepository
+            HomeworkRepository homeworkRepository,
+            StudentHomeworkRepository studentHomeworkRepository
     ) {
         return args -> {
             log.info("Initializing sample data...");
 
-            // 1. 학생 데이터 생성
+            // 1. 학원 데이터 생성
+            Academy academy1 = new Academy();
+            academy1.setName("강남학원");
+            academy1 = academyRepository.save(academy1);
+
+            Academy academy2 = new Academy();
+            academy2.setName("대치학원");
+            academy2 = academyRepository.save(academy2);
+
+            log.info("Created {} academies", 2);
+
+            // 2. 반 데이터 생성
+            AcademyClass class1 = new AcademyClass();
+            class1.setName("고1 수학반");
+            class1.setAcademy(academy1);
+            class1 = academyClassRepository.save(class1);
+
+            AcademyClass class2 = new AcademyClass();
+            class2.setName("고2 영어반");
+            class2.setAcademy(academy1);
+            class2 = academyClassRepository.save(class2);
+
+            AcademyClass class3 = new AcademyClass();
+            class3.setName("고1 과학반");
+            class3.setAcademy(academy2);
+            class3 = academyClassRepository.save(class3);
+
+            AcademyClass class4 = new AcademyClass();
+            class4.setName("고3 종합반");
+            class4.setAcademy(academy2);
+            class4 = academyClassRepository.save(class4);
+
+            log.info("Created {} classes", 4);
+
+            // 3. 학생 데이터 생성
             Student student1 = new Student();
             student1.setName("김철수");
             student1.setGrade("고1");
             student1.setSchool("서울고등학교");
-            student1.setAcademy("강남학원");
+            student1.setAcademy(academy1);
+            student1.setAcademyClass(class1);
             student1 = studentRepository.save(student1);
 
             Student student2 = new Student();
             student2.setName("이영희");
             student2.setGrade("고2");
             student2.setSchool("서울고등학교");
-            student2.setAcademy("강남학원");
+            student2.setAcademy(academy1);
+            student2.setAcademyClass(class2);
             student2 = studentRepository.save(student2);
 
             Student student3 = new Student();
             student3.setName("박민수");
             student3.setGrade("고1");
             student3.setSchool("강남고등학교");
-            student3.setAcademy("대치학원");
+            student3.setAcademy(academy2);
+            student3.setAcademyClass(class3);
             student3 = studentRepository.save(student3);
 
             Student student4 = new Student();
             student4.setName("정수진");
             student4.setGrade("고3");
             student4.setSchool("강남고등학교");
-            student4.setAcademy("대치학원");
+            student4.setAcademy(academy2);
+            student4.setAcademyClass(class4);
             student4 = studentRepository.save(student4);
 
             log.info("Created {} students", 4);
 
-            // 2. 시험 데이터 생성
+            // 4. 시험 데이터 생성
             Test test1 = new Test();
             test1.setTitle("2024년 1차 모의고사");
+            test1.setAcademy(academy1);
+            test1.setAcademyClass(class1);
             test1 = testRepository.save(test1);
 
             Test test2 = new Test();
             test2.setTitle("2024년 2차 모의고사");
+            test2.setAcademy(academy1);
+            test2.setAcademyClass(class2);
             test2 = testRepository.save(test2);
 
             Test test3 = new Test();
             test3.setTitle("2024년 중간고사 대비");
+            test3.setAcademy(academy2);
+            test3.setAcademyClass(class3);
             test3 = testRepository.save(test3);
 
             log.info("Created {} tests", 3);
@@ -314,55 +361,109 @@ public class DataInitializer {
             homework1.setTitle("수학 기본 개념 문제집");
             homework1.setQuestionCount(30);
             homework1.setMemo("1단원부터 3단원까지의 기본 개념 문제입니다. 다음 주 월요일까지 풀어오세요.");
-            homework1.setDueDate(LocalDate.now().plusDays(8)); // 8일 후
+            homework1.setDueDate(LocalDate.now().plusDays(8));
+            homework1.setAcademy(academy1);
+            homework1.setAcademyClass(class1);
             homeworkRepository.save(homework1);
 
             Homework homework2 = new Homework();
             homework2.setTitle("영어 독해 연습 문제");
             homework2.setQuestionCount(20);
             homework2.setMemo("교과서 본문 5개 지문 독해 문제입니다. 해석과 함께 제출하세요.");
-            homework2.setDueDate(LocalDate.now().plusDays(2)); // 2일 후 (곧 마감)
+            homework2.setDueDate(LocalDate.now().plusDays(2));
+            homework2.setAcademy(academy1);
+            homework2.setAcademyClass(class2);
             homeworkRepository.save(homework2);
 
             Homework homework3 = new Homework();
             homework3.setTitle("과학 실험 보고서 작성");
             homework3.setQuestionCount(5);
             homework3.setMemo("지난주 실험 내용을 바탕으로 보고서를 작성하세요. 각 문항은 실험 결과 분석 질문입니다.");
-            homework3.setDueDate(LocalDate.now().plusDays(5)); // 5일 후
+            homework3.setDueDate(LocalDate.now().plusDays(5));
+            homework3.setAcademy(academy2);
+            homework3.setAcademyClass(class3);
             homeworkRepository.save(homework3);
 
             Homework homework4 = new Homework();
             homework4.setTitle("한국사 연표 정리");
             homework4.setQuestionCount(15);
             homework4.setMemo("조선시대 주요 사건 15가지를 연표로 정리하고 각 사건의 의미를 서술하세요.");
-            homework4.setDueDate(LocalDate.now().minusDays(2)); // 2일 전 (마감 지남)
+            homework4.setDueDate(LocalDate.now().minusDays(2));
+            homework4.setAcademy(academy2);
+            homework4.setAcademyClass(class4);
             homeworkRepository.save(homework4);
 
             Homework homework5 = new Homework();
             homework5.setTitle("수학 심화 문제 풀이");
             homework5.setQuestionCount(50);
             homework5.setMemo("고난도 문제 50문제입니다. 오답 노트와 함께 제출하세요. 이번 주말까지 완료.");
-            homework5.setDueDate(LocalDate.now().plusDays(1)); // 1일 후 (곧 마감)
+            homework5.setDueDate(LocalDate.now().plusDays(1));
+            homework5.setAcademy(academy1);
+            homework5.setAcademyClass(class1);
             homeworkRepository.save(homework5);
 
             Homework homework6 = new Homework();
             homework6.setTitle("영어 단어 암기 테스트");
             homework6.setQuestionCount(100);
             homework6.setMemo("단어장 Chapter 5-7까지 총 100개 단어입니다. 금요일 쪽지 시험 예정.");
-            homework6.setDueDate(LocalDate.now().plusDays(4)); // 4일 후
+            homework6.setDueDate(LocalDate.now().plusDays(4));
+            homework6.setAcademy(academy1);
+            homework6.setAcademyClass(class2);
             homeworkRepository.save(homework6);
 
             log.info("Created {} homeworks", 6);
 
+            // 9. 학생-숙제 완성도 데이터 생성
+            StudentHomework sh1 = new StudentHomework();
+            sh1.setStudent(student1);
+            sh1.setHomework(homework1);
+            sh1.setCompletion(85);
+            studentHomeworkRepository.save(sh1);
+
+            StudentHomework sh2 = new StudentHomework();
+            sh2.setStudent(student1);
+            sh2.setHomework(homework5);
+            sh2.setCompletion(70);
+            studentHomeworkRepository.save(sh2);
+
+            StudentHomework sh3 = new StudentHomework();
+            sh3.setStudent(student2);
+            sh3.setHomework(homework2);
+            sh3.setCompletion(95);
+            studentHomeworkRepository.save(sh3);
+
+            StudentHomework sh4 = new StudentHomework();
+            sh4.setStudent(student2);
+            sh4.setHomework(homework6);
+            sh4.setCompletion(80);
+            studentHomeworkRepository.save(sh4);
+
+            StudentHomework sh5 = new StudentHomework();
+            sh5.setStudent(student3);
+            sh5.setHomework(homework3);
+            sh5.setCompletion(90);
+            studentHomeworkRepository.save(sh5);
+
+            StudentHomework sh6 = new StudentHomework();
+            sh6.setStudent(student4);
+            sh6.setHomework(homework4);
+            sh6.setCompletion(65);
+            studentHomeworkRepository.save(sh6);
+
+            log.info("Created {} student homework records", 6);
+
             log.info("Sample data initialization completed successfully!");
             log.info("===================================================");
             log.info("Summary:");
+            log.info("- Academies: 2");
+            log.info("- Classes: 4");
             log.info("- Students: 4");
             log.info("- Tests: 3");
             log.info("- Test Questions: 45");
             log.info("- Student Submissions: 7");
             log.info("- Teacher Feedbacks: 6");
             log.info("- Homeworks: 6");
+            log.info("- Student Homework Records: 6");
             log.info("===================================================");
         };
     }

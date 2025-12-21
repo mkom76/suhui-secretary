@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,7 +17,12 @@ public class StudentDto {
     private String name;
     private String grade;
     private String school;
-    private String academy;
+    private Long academyId;
+    private String academyName;
+    private Long classId;
+    private String className;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public static StudentDto from(Student student) {
         return StudentDto.builder()
@@ -23,17 +30,12 @@ public class StudentDto {
                 .name(student.getName())
                 .grade(student.getGrade())
                 .school(student.getSchool())
-                .academy(student.getAcademy())
-                .build();
-    }
-
-    public Student toEntity() {
-        return Student.builder()
-                .id(this.id)
-                .name(this.name)
-                .grade(this.grade)
-                .school(this.school)
-                .academy(this.academy)
+                .academyId(student.getAcademy() != null ? student.getAcademy().getId() : null)
+                .academyName(student.getAcademy() != null ? student.getAcademy().getName() : null)
+                .classId(student.getAcademyClass() != null ? student.getAcademyClass().getId() : null)
+                .className(student.getAcademyClass() != null ? student.getAcademyClass().getName() : null)
+                .createdAt(student.getCreatedAt())
+                .updatedAt(student.getUpdatedAt())
                 .build();
     }
 }

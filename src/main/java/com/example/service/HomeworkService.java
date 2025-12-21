@@ -1,8 +1,12 @@
 package com.example.service;
 
 import com.example.dto.HomeworkDto;
+import com.example.entity.Academy;
 import com.example.entity.Homework;
+import com.example.entity.AcademyClass;
+import com.example.repository.AcademyRepository;
 import com.example.repository.HomeworkRepository;
+import com.example.repository.AcademyClassRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class HomeworkService {
     private final HomeworkRepository homeworkRepository;
+    private final AcademyRepository academyRepository;
+    private final AcademyClassRepository academyClassRepository;
 
     public Page<HomeworkDto> getHomeworks(Pageable pageable) {
         return homeworkRepository.findAll(pageable).map(HomeworkDto::from);
@@ -26,7 +32,20 @@ public class HomeworkService {
     }
 
     public HomeworkDto createHomework(HomeworkDto dto) {
-        Homework homework = dto.toEntity();
+        Academy academy = academyRepository.findById(dto.getAcademyId())
+                .orElseThrow(() -> new RuntimeException("Academy not found"));
+        AcademyClass academyClass = academyClassRepository.findById(dto.getClassId())
+                .orElseThrow(() -> new RuntimeException("Class not found"));
+
+        Homework homework = Homework.builder()
+                .title(dto.getTitle())
+                .questionCount(dto.getQuestionCount())
+                .memo(dto.getMemo())
+                .dueDate(dto.getDueDate())
+                .academy(academy)
+                .academyClass(academyClass)
+                .build();
+
         homework = homeworkRepository.save(homework);
         return HomeworkDto.from(homework);
     }
@@ -38,6 +57,20 @@ public class HomeworkService {
         homework.setTitle(dto.getTitle());
         homework.setQuestionCount(dto.getQuestionCount());
         homework.setMemo(dto.getMemo());
+        homework.setDueDate(dto.getDueDate());
+
+        if (dto.getAcademyId() != null && !dto.getAcademyId().equals(homework.getAcademy().getId())) {
+            Academy academy = academyRepository.findById(dto.getAcademyId())
+                    .orElseThrow(() -> new RuntimeException("Academy not found"));
+            homework.setAcademy(academy);
+        }
+
+        if (dto.getClassId() != null && !dto.getClassId().equals(homework.getAcademyClass().getId())) {
+            AcademyClass academyClass = academyClassRepository.findById(dto.getClassId())
+                    .orElseThrow(() -> new RuntimeException("Class not found"));
+            homework.setAcademyClass(academyClass);
+        }
+
         homework = homeworkRepository.save(homework);
         return HomeworkDto.from(homework);
     }

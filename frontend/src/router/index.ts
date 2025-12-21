@@ -44,6 +44,16 @@ const router = createRouter({
       name: 'homeworks',
       component: () => import('../views/HomeworksView.vue'),
     },
+    {
+      path: '/academies',
+      name: 'academies',
+      component: () => import('../views/AcademiesView.vue'),
+    },
+    {
+      path: '/academy-classes',
+      name: 'academy-classes',
+      component: () => import('../views/AcademyClassesView.vue'),
+    },
   ],
 })
 

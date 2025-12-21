@@ -34,8 +34,13 @@ public class Student {
     @Column(nullable = false)
     private String school;
 
-    @Column(nullable = false)
-    private String academy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "academy_id", nullable = false)
+    private Academy academy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id", nullable = false)
+    private AcademyClass academyClass;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

@@ -7,6 +7,8 @@ import {
   feedbackAPI,
   type Student,
   studentAPI,
+  type StudentHomework,
+  studentHomeworkAPI,
   type Submission,
   submissionAPI,
   testAPI
@@ -21,6 +23,8 @@ const student = ref<Student | null>(null)
 const submissions = ref<Submission[]>([])
 const feedbacks = ref<Feedback[]>([])
 const testStats = ref<Record<number, any>>({})
+const studentHomeworks = ref<StudentHomework[]>([])
+const activeTab = ref('test')
 
 // 모달 상태
 const chartModalVisible = ref(false)
@@ -97,6 +101,23 @@ const minScore = computed(() => {
   return Math.min(...submissions.value.map(s => s.totalScore))
 })
 
+// 숙제 통계
+const averageCompletion = computed(() => {
+  if (studentHomeworks.value.length === 0) return 0
+  const total = studentHomeworks.value.reduce((sum, sh) => sum + (sh.completion || 0), 0)
+  return Math.round(total / studentHomeworks.value.length * 10) / 10
+})
+
+const maxCompletion = computed(() => {
+  if (studentHomeworks.value.length === 0) return 0
+  return Math.max(...studentHomeworks.value.map(sh => sh.completion || 0))
+})
+
+const minCompletion = computed(() => {
+  if (studentHomeworks.value.length === 0) return 0
+  return Math.min(...studentHomeworks.value.map(sh => sh.completion || 0))
+})
+
 // 모달 열기
 const openChartModal = () => {
   chartModalVisible.value = true
@@ -145,10 +166,11 @@ const svgTransform = computed(() => {
 const fetchStudentDetail = async () => {
   loading.value = true
   try {
-    const [studentRes, submissionsRes, feedbacksRes] = await Promise.all([
+    const [studentRes, submissionsRes, feedbacksRes, homeworksRes] = await Promise.all([
       studentAPI.getStudent(Number(studentId)),
       submissionAPI.getStudentSubmissions(Number(studentId)),
-      feedbackAPI.getStudentFeedbacks(Number(studentId))
+      feedbackAPI.getStudentFeedbacks(Number(studentId)),
+      studentHomeworkAPI.getByStudentId(Number(studentId))
     ])
 
     student.value = studentRes.data
@@ -159,6 +181,7 @@ const fetchStudentDetail = async () => {
         return dateA - dateB
       })
     feedbacks.value = feedbacksRes.data.content || feedbacksRes.data
+    studentHomeworks.value = homeworksRes.data.content || homeworksRes.data
 
     // 각 시험의 통계 가져오기
     const testIds = [...new Set(submissions.value.map(s => s.test?.id || s.testId).filter(id => id))]
@@ -238,9 +261,13 @@ onMounted(() => {
                 <span style="color: #909399; font-size: 14px">학교</span>
                 <div style="margin-top: 4px; font-weight: 500">{{ student?.school }}</div>
               </div>
-              <div style="padding: 12px 0">
+              <div style="padding: 12px 0; border-bottom: 1px solid #ebeef5">
                 <span style="color: #909399; font-size: 14px">학원</span>
-                <div style="margin-top: 4px; font-weight: 500">{{ student?.academy }}</div>
+                <div style="margin-top: 4px; font-weight: 500">{{ student?.academyName }}</div>
+              </div>
+              <div style="padding: 12px 0">
+                <span style="color: #909399; font-size: 14px">반</span>
+                <div style="margin-top: 4px; font-weight: 500">{{ student?.className }}</div>
               </div>
             </div>
           </div>
@@ -250,16 +277,10 @@ onMounted(() => {
       <!-- 통계 -->
       <el-col :span="16">
         <el-card shadow="never">
-          <template #header>
-            <div style="display: flex; align-items: center; gap: 8px">
-              <el-icon color="#e6a23c">
-                <TrendCharts />
-              </el-icon>
-              <span style="font-weight: 600">성적 통계</span>
-            </div>
-          </template>
-
-          <el-row :gutter="16">
+          <el-tabs v-model="activeTab" type="card">
+            <!-- 시험 통계 탭 -->
+            <el-tab-pane label="시험 통계" name="test">
+              <el-row :gutter="16">
             <el-col :span="6">
               <div style="text-align: center; padding: 20px; background: #f0f9ff; border-radius: 8px">
                 <div style="font-size: 32px; font-weight: 600; color: #409eff; margin-bottom: 8px">
@@ -394,6 +415,69 @@ onMounted(() => {
           </div>
 
           <el-empty v-else description="아직 응시한 시험이 없습니다" />
+            </el-tab-pane>
+
+            <!-- 숙제 통계 탭 -->
+            <el-tab-pane label="숙제 통계" name="homework">
+              <el-row :gutter="16">
+                <el-col :span="6">
+                  <div style="text-align: center; padding: 20px; background: #fff7e6; border-radius: 8px">
+                    <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
+                      {{ studentHomeworks.length }}
+                    </div>
+                    <div style="color: #909399; font-size: 14px">총 숙제 수</div>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px">
+                    <div style="font-size: 32px; font-weight: 600; color: #67c23a; margin-bottom: 8px">
+                      {{ averageCompletion }}%
+                    </div>
+                    <div style="color: #909399; font-size: 14px">평균 완성도</div>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div style="text-align: center; padding: 20px; background: #fffbeb; border-radius: 8px">
+                    <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
+                      {{ maxCompletion }}%
+                    </div>
+                    <div style="color: #909399; font-size: 14px">최고 완성도</div>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px">
+                    <div style="font-size: 32px; font-weight: 600; color: #f56c6c; margin-bottom: 8px">
+                      {{ minCompletion }}%
+                    </div>
+                    <div style="color: #909399; font-size: 14px">최저 완성도</div>
+                  </div>
+                </el-col>
+              </el-row>
+
+              <!-- 숙제 목록 -->
+              <div v-if="studentHomeworks.length > 0" style="margin-top: 24px">
+                <el-table :data="studentHomeworks" style="width: 100%">
+                  <el-table-column prop="homeworkTitle" label="숙제명" min-width="200" />
+                  <el-table-column label="완성도" width="150" align="center">
+                    <template #default="{ row }">
+                      <el-progress
+                        :percentage="row.completion || 0"
+                        :color="row.completion >= 80 ? '#67c23a' : row.completion >= 60 ? '#e6a23c' : '#f56c6c'"
+                      />
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="제출일" width="150">
+                    <template #default="{ row }">
+                      <span v-if="row.createdAt">{{ new Date(row.createdAt).toLocaleDateString('ko-KR') }}</span>
+                      <span v-else style="color: #909399">-</span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+
+              <el-empty v-else description="아직 완성한 숙제가 없습니다" />
+            </el-tab-pane>
+          </el-tabs>
         </el-card>
       </el-col>
     </el-row>
