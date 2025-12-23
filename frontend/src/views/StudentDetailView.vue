@@ -432,12 +432,14 @@ onMounted(() => {
                   </div>
                 </el-col>
                 <el-col :span="12">
-                  <div style="padding: 20px; background: #f0fdf4; border-radius: 8px">
-                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px; text-align: center">평균 완성도</div>
+                  <div style="padding: 20px; background: #f0fdf4; border-radius: 8px; text-align: center">
+                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px">평균 완성도</div>
                     <el-progress
+                      type="circle"
                       :percentage="averageCompletion"
                       :color="averageCompletion >= 80 ? '#67c23a' : averageCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
-                      :stroke-width="20"
+                      :width="120"
+                      :stroke-width="10"
                     />
                   </div>
                 </el-col>
@@ -445,22 +447,26 @@ onMounted(() => {
 
               <el-row :gutter="16">
                 <el-col :span="12">
-                  <div style="padding: 20px; background: #fffbeb; border-radius: 8px">
-                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px; text-align: center">최고 완성도</div>
+                  <div style="padding: 20px; background: #fffbeb; border-radius: 8px; text-align: center">
+                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px">최고 완성도</div>
                     <el-progress
+                      type="circle"
                       :percentage="maxCompletion"
                       :color="maxCompletion >= 80 ? '#67c23a' : maxCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
-                      :stroke-width="20"
+                      :width="120"
+                      :stroke-width="10"
                     />
                   </div>
                 </el-col>
                 <el-col :span="12">
-                  <div style="padding: 20px; background: #fef2f2; border-radius: 8px">
-                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px; text-align: center">최저 완성도</div>
+                  <div style="padding: 20px; background: #fef2f2; border-radius: 8px; text-align: center">
+                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px">최저 완성도</div>
                     <el-progress
+                      type="circle"
                       :percentage="minCompletion"
                       :color="minCompletion >= 80 ? '#67c23a' : minCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
-                      :stroke-width="20"
+                      :width="120"
+                      :stroke-width="10"
                     />
                   </div>
                 </el-col>
