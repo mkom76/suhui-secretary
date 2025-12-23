@@ -10,17 +10,15 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "students")
+@Table(name = "teachers")
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Student {
+public class Teacher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,22 +26,11 @@ public class Student {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String grade;
+    @Column(nullable = false, unique = true)
+    private String username;
 
-    @Column(nullable = false)
-    private String school;
-
-    @Column(length = 4)
+    @Column(nullable = false, length = 6)
     private String pin;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "academy_id", nullable = false)
-    private Academy academy;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id", nullable = false)
-    private AcademyClass academyClass;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -52,8 +39,4 @@ public class Student {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<StudentSubmission> submissions = new ArrayList<>();
 }

@@ -7,6 +7,7 @@ const client = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enable session cookies
 });
 
 // Types
@@ -106,6 +107,19 @@ interface StudentHomework {
   updatedAt?: string;
 }
 
+interface LoginDto {
+  username?: string; // for teacher
+  studentId?: number; // for student
+  pin: string;
+}
+
+interface AuthResponse {
+  userId?: number;
+  name?: string;
+  role?: 'STUDENT' | 'TEACHER';
+  message?: string;
+}
+
 // Academies API
 export const academyAPI = {
   getAcademies: (params?: any) => client.get('/academies', { params }),
@@ -187,6 +201,16 @@ export const studentHomeworkAPI = {
     client.delete(`/student-homeworks/student/${studentId}/homework/${homeworkId}`),
 };
 
+// Auth API
+export const authAPI = {
+  studentLogin: (studentId: number, pin: string) =>
+    client.post<AuthResponse>('/auth/student/login', { studentId, pin }),
+  teacherLogin: (username: string, pin: string) =>
+    client.post<AuthResponse>('/auth/teacher/login', { username, pin }),
+  logout: () => client.post('/auth/logout'),
+  getCurrentUser: () => client.get<AuthResponse>('/auth/me'),
+};
+
 export default client;
 
-export type { Academy, AcademyClass, Student, Test, Question, Submission, Feedback, Homework, StudentHomework };
+export type { Academy, AcademyClass, Student, Test, Question, Submission, Feedback, Homework, StudentHomework, LoginDto, AuthResponse };

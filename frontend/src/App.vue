@@ -1,22 +1,59 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import { ref } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { authAPI } from '@/api/client'
+import type { AuthResponse } from '@/api/client'
 
 const router = useRouter()
 const route = useRoute()
 
 const activeIndex = ref('/')
+const currentUser = ref<AuthResponse>({})
+
+const isLoginPage = computed(() => route.path === '/login')
+const isTeacherRoute = computed(() => currentUser.value.role === 'TEACHER' && !isLoginPage.value)
+const isStudentRoute = computed(() => currentUser.value.role === 'STUDENT')
+
+const fetchCurrentUser = async () => {
+  try {
+    const response = await authAPI.getCurrentUser()
+    currentUser.value = response.data
+  } catch (error) {
+    // User not logged in
+  }
+}
 
 const handleSelect = (index: string) => {
   router.push(index)
 }
-</script>
+
+const handleLogout = async () => {
+  try {
+    await authAPI.logout()
+    currentUser.value = {}
+    ElMessage.success('로그아웃 되었습니다')
+    router.push('/login')
+  } catch (error) {
+    console.error('Logout failed:', error)
+    ElMessage.error('로그아웃에 실패했습니다')
+  }
+}
+
+onMounted(() => {
+  fetchCurrentUser()
+})
+
+// Refetch user when route changes (e.g., after login)
+watch(() => route.path, () => {
+  fetchCurrentUser()
+})</script>
 
 <template>
   <el-container style="min-height: 100vh">
-    <!-- Header with Navigation -->
-    <el-header style="background-color: #fff; border-bottom: 1px solid #dcdfe6; padding: 0">
+    <!-- Header with Navigation (Teacher only) -->
+    <el-header v-if="isTeacherRoute" style="background-color: #fff; border-bottom: 1px solid #dcdfe6; padding: 0">
       <el-row justify="space-between" align="middle" style="height: 100%; padding: 0 20px">
         <el-col :span="6">
           <div style="display: flex; align-items: center; gap: 12px">
@@ -28,7 +65,7 @@ const handleSelect = (index: string) => {
             </span>
           </div>
         </el-col>
-        
+
         <el-col :span="12">
           <el-menu
             :default-active="route.path"
@@ -36,10 +73,6 @@ const handleSelect = (index: string) => {
             style="border-bottom: none; justify-content: center"
             @select="handleSelect"
           >
-            <el-menu-item index="/">
-              <el-icon><House /></el-icon>
-              홈
-            </el-menu-item>
             <el-menu-item index="/students">
               <el-icon><User /></el-icon>
               학생 관리
@@ -62,13 +95,20 @@ const handleSelect = (index: string) => {
             </el-menu-item>
           </el-menu>
         </el-col>
-        
-        <el-col :span="6"></el-col>
+
+        <el-col :span="6" style="text-align: right">
+          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px">
+            <span style="color: #606266; font-size: 14px">{{ currentUser.name }}님</span>
+            <el-button type="danger" size="small" @click="handleLogout">
+              로그아웃
+            </el-button>
+          </div>
+        </el-col>
       </el-row>
     </el-header>
 
     <!-- Main Content -->
-    <el-main style="padding: 24px; background-color: #f5f7fa">
+    <el-main :style="{ padding: isLoginPage ? '0' : '24px', backgroundColor: isLoginPage ? '#fff' : '#f5f7fa' }">
       <RouterView />
     </el-main>
   </el-container>

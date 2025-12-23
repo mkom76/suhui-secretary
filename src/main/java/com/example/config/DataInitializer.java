@@ -31,10 +31,26 @@ public class DataInitializer {
             StudentSubmissionDetailRepository studentSubmissionDetailRepository,
             TeacherFeedbackRepository teacherFeedbackRepository,
             HomeworkRepository homeworkRepository,
-            StudentHomeworkRepository studentHomeworkRepository
+            StudentHomeworkRepository studentHomeworkRepository,
+            TeacherRepository teacherRepository
     ) {
         return args -> {
             log.info("Initializing sample data...");
+
+            // 0. 선생님 데이터 생성
+            Teacher teacher1 = new Teacher();
+            teacher1.setName("김선생님");
+            teacher1.setUsername("teacher1");
+            teacher1.setPin("123456");
+            teacher1 = teacherRepository.save(teacher1);
+
+            Teacher teacher2 = new Teacher();
+            teacher2.setName("이선생님");
+            teacher2.setUsername("teacher2");
+            teacher2.setPin("654321");
+            teacher2 = teacherRepository.save(teacher2);
+
+            log.info("Created {} teachers", 2);
 
             // 1. 학원 데이터 생성
             Academy academy1 = new Academy();
@@ -77,6 +93,7 @@ public class DataInitializer {
             student1.setSchool("서울고등학교");
             student1.setAcademy(academy1);
             student1.setAcademyClass(class1);
+            student1.setPin("1234");
             student1 = studentRepository.save(student1);
 
             Student student2 = new Student();
@@ -85,6 +102,7 @@ public class DataInitializer {
             student2.setSchool("서울고등학교");
             student2.setAcademy(academy1);
             student2.setAcademyClass(class2);
+            student2.setPin("2345");
             student2 = studentRepository.save(student2);
 
             Student student3 = new Student();
@@ -93,6 +111,7 @@ public class DataInitializer {
             student3.setSchool("강남고등학교");
             student3.setAcademy(academy2);
             student3.setAcademyClass(class3);
+            student3.setPin("3456");
             student3 = studentRepository.save(student3);
 
             Student student4 = new Student();
@@ -101,6 +120,7 @@ public class DataInitializer {
             student4.setSchool("강남고등학교");
             student4.setAcademy(academy2);
             student4.setAcademyClass(class4);
+            student4.setPin("4567");
             student4 = studentRepository.save(student4);
 
             log.info("Created {} students", 4);
@@ -455,6 +475,7 @@ public class DataInitializer {
             log.info("Sample data initialization completed successfully!");
             log.info("===================================================");
             log.info("Summary:");
+            log.info("- Teachers: 2");
             log.info("- Academies: 2");
             log.info("- Classes: 4");
             log.info("- Students: 4");

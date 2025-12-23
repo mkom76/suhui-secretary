@@ -1,60 +1,127 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { authAPI } from '@/api/client'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
       path: '/',
-      name: 'home',
-      component: HomeView,
+      redirect: '/students'
     },
     {
       path: '/students',
       name: 'students',
       component: () => import('../views/StudentsView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
       path: '/students/:id',
       name: 'student-detail',
       component: () => import('../views/StudentDetailView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
       path: '/tests',
       name: 'tests',
       component: () => import('../views/TestsView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
       path: '/tests/:id',
       name: 'test-detail',
       component: () => import('../views/TestDetailView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
       path: '/tests/:id/answers',
       name: 'test-answers',
       component: () => import('../views/TestAnswersView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
       path: '/tests/:id/feedback',
       name: 'test-feedback',
       component: () => import('../views/TestFeedbackView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
       path: '/homeworks',
       name: 'homeworks',
       component: () => import('../views/HomeworksView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
       path: '/academies',
       name: 'academies',
       component: () => import('../views/AcademiesView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
       path: '/academy-classes',
       name: 'academy-classes',
       component: () => import('../views/AcademyClassesView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
+    },
+    {
+      path: '/student/dashboard',
+      name: 'student-dashboard',
+      component: () => import('../views/StudentDashboardView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'STUDENT' }
+    },
+    {
+      path: '/student/tests/:id',
+      name: 'student-test-taking',
+      component: () => import('../views/StudentTestTakingView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'STUDENT' }
     },
   ],
+})
+
+// Navigation guard
+router.beforeEach(async (to, from, next) => {
+  const requiresAuth = to.meta.requiresAuth !== false
+  const requiresRole = to.meta.requiresRole as string | undefined
+
+  if (!requiresAuth) {
+    // Public route
+    next()
+    return
+  }
+
+  try {
+    // Check authentication status
+    const response = await authAPI.getCurrentUser()
+    const currentUser = response.data
+
+    if (!currentUser.userId) {
+      // Not authenticated
+      next('/login')
+      return
+    }
+
+    // Check role requirement
+    if (requiresRole && currentUser.role !== requiresRole) {
+      // Wrong role - redirect to appropriate dashboard
+      if (currentUser.role === 'STUDENT') {
+        next('/student/dashboard')
+      } else {
+        next('/')
+      }
+      return
+    }
+
+    // Authenticated and authorized
+    next()
+  } catch (error) {
+    // Authentication failed
+    next('/login')
+  }
 })
 
 export default router
