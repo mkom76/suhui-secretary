@@ -21,6 +21,7 @@ public class StudentDto {
     private String academyName;
     private Long classId;
     private String className;
+    private String pin; // Only used for create/update operations
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

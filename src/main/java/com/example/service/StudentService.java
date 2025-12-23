@@ -47,6 +47,7 @@ public class StudentService {
                 .name(dto.getName())
                 .grade(dto.getGrade())
                 .school(dto.getSchool())
+                .pin(dto.getPin())
                 .academy(academy)
                 .academyClass(academyClass)
                 .build();
@@ -81,5 +82,13 @@ public class StudentService {
     
     public void deleteStudent(Long id) {
         studentRepository.deleteById(id);
+    }
+
+    public StudentDto resetPin(Long id, String newPin) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        student.setPin(newPin);
+        student = studentRepository.save(student);
+        return StudentDto.from(student);
     }
 }

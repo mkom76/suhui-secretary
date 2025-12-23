@@ -78,9 +78,15 @@ onMounted(() => {
             {{ studentInfo.academyName }} - {{ studentInfo.className }}
           </p>
         </div>
-        <el-button type="danger" @click="handleLogout">
-          로그아웃
-        </el-button>
+        <div style="display: flex; gap: 12px">
+          <el-button @click="$router.push('/settings')">
+            <el-icon style="margin-right: 8px"><Setting /></el-icon>
+            설정
+          </el-button>
+          <el-button type="danger" @click="handleLogout">
+            로그아웃
+          </el-button>
+        </div>
       </div>
     </el-card>
 

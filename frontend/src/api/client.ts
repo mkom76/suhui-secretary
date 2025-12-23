@@ -36,6 +36,7 @@ interface Student {
   academyName?: string;
   classId?: number;
   className?: string;
+  pin?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -146,6 +147,7 @@ export const studentAPI = {
   createStudent: (data: Student) => client.post('/students', data),
   updateStudent: (id: number, data: Student) => client.put(`/students/${id}`, data),
   deleteStudent: (id: number) => client.delete(`/students/${id}`),
+  resetPin: (id: number, pin: string) => client.put(`/students/${id}/reset-pin`, { pin }),
 };
 
 // Tests API
@@ -209,6 +211,8 @@ export const authAPI = {
     client.post<AuthResponse>('/auth/teacher/login', { username, pin }),
   logout: () => client.post('/auth/logout'),
   getCurrentUser: () => client.get<AuthResponse>('/auth/me'),
+  changePin: (currentPin: string, newPin: string) =>
+    client.put<AuthResponse>('/auth/change-pin', { currentPin, newPin }),
 };
 
 export default client;

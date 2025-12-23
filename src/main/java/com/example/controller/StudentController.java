@@ -45,4 +45,15 @@ public class StudentController {
         studentService.deleteStudent(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/reset-pin")
+    public ResponseEntity<StudentDto> resetStudentPin(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> request) {
+        String newPin = request.get("pin");
+        if (newPin == null || newPin.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(studentService.resetPin(id, newPin));
+    }
 }

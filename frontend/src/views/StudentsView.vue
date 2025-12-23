@@ -83,9 +83,25 @@ const handleSubmit = async () => {
     return
   }
 
+  if (!editMode.value && !currentStudent.value.pin) {
+    ElMessage.error('PIN을 입력해주세요.')
+    return
+  }
+
+  if (currentStudent.value.pin && currentStudent.value.pin.length !== 4) {
+    ElMessage.error('PIN은 4자리 숫자여야 합니다.')
+    return
+  }
+
   try {
     if (editMode.value && currentStudent.value.id) {
       await studentAPI.updateStudent(currentStudent.value.id, currentStudent.value)
+
+      // PIN이 입력된 경우 별도로 업데이트
+      if (currentStudent.value.pin && currentStudent.value.pin.trim() !== '') {
+        await studentAPI.resetPin(currentStudent.value.id, currentStudent.value.pin)
+      }
+
       ElMessage.success('학생 정보가 수정되었습니다.')
     } else {
       await studentAPI.createStudent(currentStudent.value)
@@ -313,6 +329,20 @@ onMounted(() => {
               :value="cls.id"
             />
           </el-select>
+        </el-form-item>
+
+        <el-form-item :label="editMode ? 'PIN (선택)' : 'PIN'" :required="!editMode">
+          <el-input
+            v-model="currentStudent.pin"
+            :placeholder="editMode ? 'PIN을 변경하려면 입력하세요 (4자리)' : 'PIN 번호를 입력하세요 (4자리)'"
+            maxlength="4"
+            show-password
+          />
+          <template v-if="editMode">
+            <div style="color: #909399; font-size: 12px; margin-top: 4px">
+              비워두면 PIN이 변경되지 않습니다
+            </div>
+          </template>
         </el-form-item>
       </el-form>
       

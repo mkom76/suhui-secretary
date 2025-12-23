@@ -104,35 +104,56 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container">
-    <div class="header">
-      <h1>반 관리</h1>
-      <div class="controls">
-        <el-input
-          v-model="searchQuery"
-          placeholder="반명 또는 학원명 검색"
-          clearable
-          style="width: 250px"
-        />
-        <el-button type="primary" @click="openAddDialog">반 추가</el-button>
+  <div>
+    <!-- Header -->
+    <el-card shadow="never" style="margin-bottom: 24px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <div>
+          <h1 style="margin: 0; font-size: 28px; font-weight: 600; color: #303133; display: flex; align-items: center; gap: 12px">
+            <el-icon size="32" color="#409eff">
+              <Grid />
+            </el-icon>
+            반 관리
+          </h1>
+          <p style="margin: 8px 0 0; color: #909399">학원별 반 정보를 관리합니다</p>
+        </div>
+        <div style="display: flex; gap: 12px">
+          <el-input
+            v-model="searchQuery"
+            placeholder="반명 또는 학원명 검색"
+            clearable
+            style="width: 250px"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          <el-button type="primary" @click="openAddDialog">
+            <el-icon style="margin-right: 8px"><Plus /></el-icon>
+            반 추가
+          </el-button>
+        </div>
       </div>
-    </div>
+    </el-card>
 
-    <el-table
-      :data="tableData"
-      v-loading="loading"
-      style="width: 100%"
-    >
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="academyName" label="학원" width="200" />
-      <el-table-column prop="name" label="반명" />
-      <el-table-column label="작업" width="150" align="center">
-        <template #default="{ row }">
-          <el-button size="small" @click="openEditDialog(row)">수정</el-button>
-          <el-button size="small" type="danger" @click="handleDelete(row)">삭제</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <!-- Table -->
+    <el-card shadow="never">
+      <el-table
+        :data="tableData"
+        v-loading="loading"
+        style="width: 100%"
+      >
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="academyName" label="학원" width="200" />
+        <el-table-column prop="name" label="반명" />
+        <el-table-column label="작업" width="150" align="center">
+          <template #default="{ row }">
+            <el-button size="small" @click="openEditDialog(row)">수정</el-button>
+            <el-button size="small" type="danger" @click="handleDelete(row)">삭제</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
 
     <el-dialog
       v-model="dialogVisible"
@@ -167,26 +188,3 @@ onMounted(() => {
     </el-dialog>
   </div>
 </template>
-
-<style scoped>
-.container {
-  padding: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.controls {
-  display: flex;
-  gap: 10px;
-}
-
-h1 {
-  margin: 0;
-  font-size: 24px;
-}
-</style>

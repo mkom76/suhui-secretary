@@ -280,40 +280,43 @@ onMounted(() => {
           <el-tabs v-model="activeTab" type="card">
             <!-- 시험 통계 탭 -->
             <el-tab-pane label="시험 통계" name="test">
+              <el-row :gutter="16" style="margin-bottom: 16px">
+                <el-col :span="12">
+                  <div style="text-align: center; padding: 20px; background: #f0f9ff; border-radius: 8px">
+                    <div style="font-size: 32px; font-weight: 600; color: #409eff; margin-bottom: 8px">
+                      {{ submissions.length }}
+                    </div>
+                    <div style="color: #909399; font-size: 14px">총 응시 시험</div>
+                  </div>
+                </el-col>
+                <el-col :span="12">
+                  <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px">
+                    <div style="font-size: 32px; font-weight: 600; color: #67c23a; margin-bottom: 8px">
+                      {{ averageScore }}
+                    </div>
+                    <div style="color: #909399; font-size: 14px">평균 점수</div>
+                  </div>
+                </el-col>
+              </el-row>
+
               <el-row :gutter="16">
-            <el-col :span="6">
-              <div style="text-align: center; padding: 20px; background: #f0f9ff; border-radius: 8px">
-                <div style="font-size: 32px; font-weight: 600; color: #409eff; margin-bottom: 8px">
-                  {{ submissions.length }}
-                </div>
-                <div style="color: #909399; font-size: 14px">총 응시 시험</div>
-              </div>
-            </el-col>
-            <el-col :span="6">
-              <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px">
-                <div style="font-size: 32px; font-weight: 600; color: #67c23a; margin-bottom: 8px">
-                  {{ averageScore }}
-                </div>
-                <div style="color: #909399; font-size: 14px">평균 점수</div>
-              </div>
-            </el-col>
-            <el-col :span="6">
-              <div style="text-align: center; padding: 20px; background: #fffbeb; border-radius: 8px">
-                <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
-                  {{ maxScore }}
-                </div>
-                <div style="color: #909399; font-size: 14px">최고 점수</div>
-              </div>
-            </el-col>
-            <el-col :span="6">
-              <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px">
-                <div style="font-size: 32px; font-weight: 600; color: #f56c6c; margin-bottom: 8px">
-                  {{ minScore }}
-                </div>
-                <div style="color: #909399; font-size: 14px">최저 점수</div>
-              </div>
-            </el-col>
-          </el-row>
+                <el-col :span="12">
+                  <div style="text-align: center; padding: 20px; background: #fffbeb; border-radius: 8px">
+                    <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
+                      {{ maxScore }}
+                    </div>
+                    <div style="color: #909399; font-size: 14px">최고 점수</div>
+                  </div>
+                </el-col>
+                <el-col :span="12">
+                  <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px">
+                    <div style="font-size: 32px; font-weight: 600; color: #f56c6c; margin-bottom: 8px">
+                      {{ minScore }}
+                    </div>
+                    <div style="color: #909399; font-size: 14px">최저 점수</div>
+                  </div>
+                </el-col>
+              </el-row>
 
           <!-- 꺾은선 그래프 -->
           <div v-if="chartPoints && chartPoints.length > 0" style="margin-top: 24px; padding: 20px; background: #fafafa; border-radius: 8px; cursor: pointer; transition: all 0.3s" @click="openChartModal">
@@ -419,8 +422,8 @@ onMounted(() => {
 
             <!-- 숙제 통계 탭 -->
             <el-tab-pane label="숙제 통계" name="homework">
-              <el-row :gutter="16">
-                <el-col :span="6">
+              <el-row :gutter="16" style="margin-bottom: 16px">
+                <el-col :span="12">
                   <div style="text-align: center; padding: 20px; background: #fff7e6; border-radius: 8px">
                     <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
                       {{ studentHomeworks.length }}
@@ -428,28 +431,37 @@ onMounted(() => {
                     <div style="color: #909399; font-size: 14px">총 숙제 수</div>
                   </div>
                 </el-col>
-                <el-col :span="6">
-                  <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px">
-                    <div style="font-size: 32px; font-weight: 600; color: #67c23a; margin-bottom: 8px">
-                      {{ averageCompletion }}%
-                    </div>
-                    <div style="color: #909399; font-size: 14px">평균 완성도</div>
+                <el-col :span="12">
+                  <div style="padding: 20px; background: #f0fdf4; border-radius: 8px">
+                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px; text-align: center">평균 완성도</div>
+                    <el-progress
+                      :percentage="averageCompletion"
+                      :color="averageCompletion >= 80 ? '#67c23a' : averageCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
+                      :stroke-width="20"
+                    />
                   </div>
                 </el-col>
-                <el-col :span="6">
-                  <div style="text-align: center; padding: 20px; background: #fffbeb; border-radius: 8px">
-                    <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
-                      {{ maxCompletion }}%
-                    </div>
-                    <div style="color: #909399; font-size: 14px">최고 완성도</div>
+              </el-row>
+
+              <el-row :gutter="16">
+                <el-col :span="12">
+                  <div style="padding: 20px; background: #fffbeb; border-radius: 8px">
+                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px; text-align: center">최고 완성도</div>
+                    <el-progress
+                      :percentage="maxCompletion"
+                      :color="maxCompletion >= 80 ? '#67c23a' : maxCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
+                      :stroke-width="20"
+                    />
                   </div>
                 </el-col>
-                <el-col :span="6">
-                  <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px">
-                    <div style="font-size: 32px; font-weight: 600; color: #f56c6c; margin-bottom: 8px">
-                      {{ minCompletion }}%
-                    </div>
-                    <div style="color: #909399; font-size: 14px">최저 완성도</div>
+                <el-col :span="12">
+                  <div style="padding: 20px; background: #fef2f2; border-radius: 8px">
+                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px; text-align: center">최저 완성도</div>
+                    <el-progress
+                      :percentage="minCompletion"
+                      :color="minCompletion >= 80 ? '#67c23a' : minCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
+                      :stroke-width="20"
+                    />
                   </div>
                 </el-col>
               </el-row>

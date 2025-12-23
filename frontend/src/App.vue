@@ -60,9 +60,14 @@ watch(() => route.path, () => {
             <el-icon size="32" color="#409eff">
               <School />
             </el-icon>
-            <span style="font-size: 20px; font-weight: 600; color: #303133">
-              학원 관리 시스템
-            </span>
+            <div style="line-height: 1.2">
+              <div style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #409eff, #67c23a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.5px">
+                SUHUI
+              </div>
+              <div style="font-size: 13px; font-weight: 600; color: #606266; letter-spacing: 1px">
+                SECRETARY
+              </div>
+            </div>
           </div>
         </el-col>
 
@@ -92,6 +97,10 @@ watch(() => route.path, () => {
             <el-menu-item index="/academy-classes">
               <el-icon><Grid /></el-icon>
               반 관리
+            </el-menu-item>
+            <el-menu-item index="/settings">
+              <el-icon><Setting /></el-icon>
+              설정
             </el-menu-item>
           </el-menu>
         </el-col>
