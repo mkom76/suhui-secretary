@@ -79,6 +79,10 @@ onMounted(() => {
           </p>
         </div>
         <div style="display: flex; gap: 12px">
+          <el-button type="primary" size="large" @click="$router.push('/student/daily-feedback')">
+            <el-icon style="margin-right: 8px"><Document /></el-icon>
+            오늘의 학습 피드백
+          </el-button>
           <el-button @click="$router.push('/settings')">
             <el-icon style="margin-right: 8px"><Setting /></el-icon>
             설정

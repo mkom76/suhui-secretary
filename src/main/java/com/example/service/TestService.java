@@ -24,6 +24,7 @@ public class TestService {
     private final StudentRepository studentRepository;
     private final AcademyRepository academyRepository;
     private final AcademyClassRepository academyClassRepository;
+    private final LessonService lessonService;
     
     public Page<TestDto> getTests(Pageable pageable) {
         return testRepository.findAll(pageable).map(TestDto::from);
@@ -41,10 +42,17 @@ public class TestService {
         AcademyClass academyClass = academyClassRepository.findById(dto.getClassId())
                 .orElseThrow(() -> new RuntimeException("Class not found"));
 
+        // Auto-create lesson for today
+        Lesson lesson = lessonService.getOrCreateLesson(
+                dto.getAcademyId(),
+                dto.getClassId(),
+                java.time.LocalDate.now());
+
         Test test = Test.builder()
                 .title(dto.getTitle())
                 .academy(academy)
                 .academyClass(academyClass)
+                .lesson(lesson)
                 .build();
 
         test = testRepository.save(test);

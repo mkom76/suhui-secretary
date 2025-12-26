@@ -27,6 +27,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
+      path: '/students/:id/feedback',
+      name: 'student-feedback',
+      component: () => import('../views/StudentDailyFeedbackView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
+    },
+    {
       path: '/tests',
       name: 'tests',
       component: () => import('../views/TestsView.vue'),
@@ -84,6 +90,12 @@ const router = createRouter({
       path: '/student/tests/:id',
       name: 'student-test-taking',
       component: () => import('../views/StudentTestTakingView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'STUDENT' }
+    },
+    {
+      path: '/student/daily-feedback',
+      name: 'student-daily-feedback',
+      component: () => import('../views/StudentDailyFeedbackView.vue'),
       meta: { requiresAuth: true, requiresRole: 'STUDENT' }
     },
   ],

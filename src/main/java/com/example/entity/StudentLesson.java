@@ -10,35 +10,33 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "tests")
+@Table(name = "student_lessons",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"student_id", "lesson_id"}))
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Test {
+public class StudentLesson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
+    private Student student;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "academy_id", nullable = false)
-    private Academy academy;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id", nullable = false)
-    private AcademyClass academyClass;
-
-    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id", nullable = false)
     private Lesson lesson;
+
+    @Column(name = "instructor_feedback", columnDefinition = "TEXT")
+    private String instructorFeedback;
+
+    @Column(name = "feedback_author")
+    private String feedbackAuthor;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -47,12 +45,4 @@ public class Test {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<TestQuestion> questions = new ArrayList<>();
-
-    @OneToMany(mappedBy = "test", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<StudentSubmission> submissions = new ArrayList<>();
 }

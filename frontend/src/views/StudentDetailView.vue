@@ -11,7 +11,11 @@ import {
   studentHomeworkAPI,
   type Submission,
   submissionAPI,
-  testAPI
+  testAPI,
+  dailyFeedbackAPI,
+  authAPI,
+  type Lesson,
+  lessonAPI
 } from '../api/client'
 
 const route = useRoute()
@@ -25,9 +29,16 @@ const feedbacks = ref<Feedback[]>([])
 const testStats = ref<Record<number, any>>({})
 const studentHomeworks = ref<StudentHomework[]>([])
 const activeTab = ref('test')
+const lessons = ref<Lesson[]>([])
 
 // 모달 상태
 const chartModalVisible = ref(false)
+const feedbackDialogVisible = ref(false)
+const feedbackForm = ref({
+  lessonId: null as number | null,
+  content: '',
+  authorName: ''
+})
 
 // 확대/축소 및 이동 상태
 const zoom = ref(1)
@@ -42,7 +53,7 @@ const chartPoints = computed(() => {
   if (submissions.value.length === 0) return []
 
   const points = submissions.value.map((s, index) => {
-    const testId = s.test?.id || s.testId
+    const testId = s.testId
     const stats = testStats.value[testId]
     const studentScore = s.totalScore
     const academyAverage = stats?.averageScore || 0
@@ -184,7 +195,7 @@ const fetchStudentDetail = async () => {
     studentHomeworks.value = homeworksRes.data.content || homeworksRes.data
 
     // 각 시험의 통계 가져오기
-    const testIds = [...new Set(submissions.value.map(s => s.test?.id || s.testId).filter(id => id))]
+    const testIds = [...new Set(submissions.value.map(s => s.testId).filter(id => id))]
     const statsPromises = testIds.map(async (testId) => {
       try {
         const response = await testAPI.getTestStats(testId)
@@ -205,8 +216,67 @@ const goBack = () => {
   router.push('/students')
 }
 
-const navigateToTest = (testId: number) => {
+const navigateToTest = (testId: number | undefined) => {
+  if (!testId) {
+    ElMessage.warning('시험 정보를 찾을 수 없습니다')
+    return
+  }
   router.push(`/tests/${testId}`)
+}
+
+const openTodayFeedbackDialog = async () => {
+  try {
+    const currentUser = await authAPI.getCurrentUser()
+    feedbackForm.value.authorName = currentUser.data.name || ''
+
+    // 학생의 반에 속한 레슨 목록 가져오기
+    if (student.value?.classId) {
+      const lessonsRes = await lessonAPI.getLessonsByClass(student.value.classId)
+      lessons.value = lessonsRes.data
+
+      // 오늘 날짜와 가장 가까운 레슨을 기본 선택
+      const today = new Date().toISOString().split('T')[0]
+      const todayLesson = lessons.value.find(l => l.lessonDate === today)
+      if (todayLesson) {
+        feedbackForm.value.lessonId = todayLesson.id || null
+      } else if (lessons.value.length > 0) {
+        // 오늘 레슨이 없으면 가장 최근 레슨 선택
+        feedbackForm.value.lessonId = lessons.value[0].id || null
+      }
+    }
+
+    feedbackDialogVisible.value = true
+  } catch (error) {
+    ElMessage.error('사용자 정보를 불러오는데 실패했습니다')
+  }
+}
+
+const submitTodayFeedback = async () => {
+  if (!feedbackForm.value.content.trim()) {
+    ElMessage.warning('피드백 내용을 입력해주세요')
+    return
+  }
+
+  if (!feedbackForm.value.lessonId) {
+    ElMessage.warning('수업을 선택해주세요')
+    return
+  }
+
+  try {
+    await dailyFeedbackAPI.updateInstructorFeedback(
+      Number(studentId),
+      feedbackForm.value.lessonId,
+      feedbackForm.value.content,
+      feedbackForm.value.authorName
+    )
+
+    ElMessage.success('피드백이 저장되었습니다')
+    feedbackDialogVisible.value = false
+    feedbackForm.value.content = ''
+    feedbackForm.value.lessonId = null
+  } catch (error: any) {
+    ElMessage.error('피드백 저장에 실패했습니다')
+  }
 }
 
 onMounted(() => {
@@ -228,9 +298,19 @@ onMounted(() => {
           </h1>
           <p style="margin: 8px 0 0; color: #909399">학생 ID: {{ studentId }}</p>
         </div>
-        <el-button @click="goBack" :icon="ArrowLeft" size="large">
-          목록으로
-        </el-button>
+        <div style="display: flex; gap: 12px">
+          <el-button type="primary" @click="openTodayFeedbackDialog" size="large">
+            <el-icon style="margin-right: 8px"><Edit /></el-icon>
+            수업 피드백 작성
+          </el-button>
+          <el-button type="success" @click="router.push(`/students/${studentId}/feedback`)" size="large">
+            <el-icon style="margin-right: 8px"><View /></el-icon>
+            학습 피드백 보기
+          </el-button>
+          <el-button @click="goBack" :icon="ArrowLeft" size="large">
+            목록으로
+          </el-button>
+        </div>
       </div>
     </el-card>
 
@@ -516,10 +596,10 @@ onMounted(() => {
           <template #default="{ row }">
             <div
               style="cursor: pointer; color: #409eff; font-weight: 500"
-              @click="navigateToTest(row.test?.id)"
+              @click="navigateToTest(row.testId)"
             >
               <el-icon style="margin-right: 4px"><Document /></el-icon>
-              {{ row.test?.title || row.testTitle || '시험명 없음' }}
+              {{ row.testTitle || '시험명 없음' }}
             </div>
           </template>
         </el-table-column>
@@ -739,6 +819,42 @@ onMounted(() => {
         <div>• 클릭 & 드래그: 차트 이동</div>
         <div>• 초기화 버튼: 원래 크기로 복원</div>
       </div>
+    </el-dialog>
+
+    <!-- 수업 피드백 작성 다이얼로그 -->
+    <el-dialog
+      v-model="feedbackDialogVisible"
+      title="수업 피드백 작성"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="100px">
+        <el-form-item label="수업 선택" required>
+          <el-select v-model="feedbackForm.lessonId" placeholder="수업을 선택하세요" style="width: 100%">
+            <el-option
+              v-for="lesson in lessons"
+              :key="lesson.id"
+              :label="`${lesson.lessonDate} - ${lesson.testTitle || lesson.homeworkTitle || '수업'}`"
+              :value="lesson.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="작성자">
+          <el-input v-model="feedbackForm.authorName" placeholder="선생님 이름" />
+        </el-form-item>
+        <el-form-item label="피드백 내용">
+          <el-input
+            v-model="feedbackForm.content"
+            type="textarea"
+            :rows="10"
+            placeholder="수업에 대한 피드백을 작성하세요..."
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="feedbackDialogVisible = false">취소</el-button>
+        <el-button type="primary" @click="submitTodayFeedback">저장</el-button>
+      </template>
     </el-dialog>
   </div>
 </template>

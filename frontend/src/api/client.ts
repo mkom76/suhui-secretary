@@ -108,6 +108,21 @@ interface StudentHomework {
   updatedAt?: string;
 }
 
+interface Lesson {
+  id?: number;
+  lessonDate: string;
+  academyId?: number;
+  academyName?: string;
+  classId?: number;
+  className?: string;
+  testId?: number;
+  testTitle?: string;
+  homeworkId?: number;
+  homeworkTitle?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface LoginDto {
   username?: string; // for teacher
   studentId?: number; // for student
@@ -203,6 +218,14 @@ export const studentHomeworkAPI = {
     client.delete(`/student-homeworks/student/${studentId}/homework/${homeworkId}`),
 };
 
+// Lessons API
+export const lessonAPI = {
+  getLessons: (params?: any) => client.get<{ content: Lesson[] }>('/lessons', { params }),
+  getLesson: (id: number) => client.get<Lesson>(`/lessons/${id}`),
+  getLessonsByClass: (classId: number) => client.get<Lesson[]>(`/lessons/class/${classId}`),
+  deleteLesson: (id: number) => client.delete(`/lessons/${id}`),
+};
+
 // Auth API
 export const authAPI = {
   studentLogin: (studentId: number, pin: string) =>
@@ -215,6 +238,47 @@ export const authAPI = {
     client.put<AuthResponse>('/auth/change-pin', { currentPin, newPin }),
 };
 
+// Daily Feedback API
+export interface DailyFeedback {
+  lessonId: number;
+  lessonDate: string;
+  todayHomework?: HomeworkSummary;
+  nextHomework?: HomeworkSummary;
+  todayTest?: TestFeedback;
+  instructorFeedback?: string;
+  feedbackAuthor?: string;
+}
+
+export interface HomeworkSummary {
+  homeworkId: number;
+  homeworkTitle: string;
+  questionCount: number;
+  completion?: number;
+  dueDate?: string;
+}
+
+export interface TestFeedback {
+  testId: number;
+  testTitle: string;
+  studentScore: number;
+  incorrectQuestions: number[];
+  questionAccuracyRates: QuestionAccuracy[];
+}
+
+export interface QuestionAccuracy {
+  questionNumber: number;
+  correctRate: number;
+}
+
+export const dailyFeedbackAPI = {
+  getTodayFeedback: (studentId: number) =>
+    client.get<DailyFeedback>(`/daily-feedback/student/${studentId}/today`),
+  getDailyFeedback: (studentId: number, lessonId: number) =>
+    client.get<DailyFeedback>(`/daily-feedback/student/${studentId}/lesson/${lessonId}`),
+  updateInstructorFeedback: (studentId: number, lessonId: number, feedback: string, authorName: string) =>
+    client.put(`/daily-feedback/student/${studentId}/lesson/${lessonId}`, { feedback, authorName }),
+};
+
 export default client;
 
-export type { Academy, AcademyClass, Student, Test, Question, Submission, Feedback, Homework, StudentHomework, LoginDto, AuthResponse };
+export type { Academy, AcademyClass, Student, Test, Question, Submission, Feedback, Homework, StudentHomework, Lesson, LoginDto, AuthResponse, DailyFeedback, HomeworkSummary, TestFeedback, QuestionAccuracy };

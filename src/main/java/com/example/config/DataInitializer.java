@@ -32,25 +32,20 @@ public class DataInitializer {
             TeacherFeedbackRepository teacherFeedbackRepository,
             HomeworkRepository homeworkRepository,
             StudentHomeworkRepository studentHomeworkRepository,
-            TeacherRepository teacherRepository
+            TeacherRepository teacherRepository,
+            LessonRepository lessonRepository
     ) {
         return args -> {
             log.info("Initializing sample data...");
 
             // 0. 선생님 데이터 생성
             Teacher teacher1 = new Teacher();
-            teacher1.setName("김선생님");
-            teacher1.setUsername("teacher1");
+            teacher1.setName("수희");
+            teacher1.setUsername("suhui");
             teacher1.setPin("123456");
             teacher1 = teacherRepository.save(teacher1);
 
-            Teacher teacher2 = new Teacher();
-            teacher2.setName("이선생님");
-            teacher2.setUsername("teacher2");
-            teacher2.setPin("654321");
-            teacher2 = teacherRepository.save(teacher2);
-
-            log.info("Created {} teachers", 2);
+            log.info("Created {} teachers", 1);
 
             // 1. 학원 데이터 생성
             Academy academy1 = new Academy();
@@ -125,23 +120,65 @@ public class DataInitializer {
 
             log.info("Created {} students", 4);
 
-            // 4. 시험 데이터 생성
+            // 4. 수업(Lesson) 데이터 생성
+            Lesson lesson1 = new Lesson();
+            lesson1.setLessonDate(LocalDate.now().minusDays(30));
+            lesson1.setAcademy(academy1);
+            lesson1.setAcademyClass(class1);
+            lesson1 = lessonRepository.save(lesson1);
+
+            Lesson lesson2 = new Lesson();
+            lesson2.setLessonDate(LocalDate.now().minusDays(20));
+            lesson2.setAcademy(academy1);
+            lesson2.setAcademyClass(class2);
+            lesson2 = lessonRepository.save(lesson2);
+
+            Lesson lesson3 = new Lesson();
+            lesson3.setLessonDate(LocalDate.now().minusDays(10));
+            lesson3.setAcademy(academy2);
+            lesson3.setAcademyClass(class3);
+            lesson3 = lessonRepository.save(lesson3);
+
+            Lesson lesson4 = new Lesson();
+            lesson4.setLessonDate(LocalDate.now().minusDays(5));
+            lesson4.setAcademy(academy1);
+            lesson4.setAcademyClass(class1);
+            lesson4 = lessonRepository.save(lesson4);
+
+            Lesson lesson5 = new Lesson();
+            lesson5.setLessonDate(LocalDate.now().minusDays(3));
+            lesson5.setAcademy(academy1);
+            lesson5.setAcademyClass(class2);
+            lesson5 = lessonRepository.save(lesson5);
+
+            Lesson lesson6 = new Lesson();
+            lesson6.setLessonDate(LocalDate.now().minusDays(1));
+            lesson6.setAcademy(academy2);
+            lesson6.setAcademyClass(class4);
+            lesson6 = lessonRepository.save(lesson6);
+
+            log.info("Created {} lessons", 6);
+
+            // 5. 시험 데이터 생성 (Lesson과 연결)
             Test test1 = new Test();
             test1.setTitle("2024년 1차 모의고사");
             test1.setAcademy(academy1);
             test1.setAcademyClass(class1);
+            test1.setLesson(lesson1);
             test1 = testRepository.save(test1);
 
             Test test2 = new Test();
             test2.setTitle("2024년 2차 모의고사");
             test2.setAcademy(academy1);
             test2.setAcademyClass(class2);
+            test2.setLesson(lesson2);
             test2 = testRepository.save(test2);
 
             Test test3 = new Test();
             test3.setTitle("2024년 중간고사 대비");
             test3.setAcademy(academy2);
             test3.setAcademyClass(class3);
+            test3.setLesson(lesson3);
             test3 = testRepository.save(test3);
 
             log.info("Created {} tests", 3);
@@ -376,7 +413,7 @@ public class DataInitializer {
 
             log.info("Created {} teacher feedbacks", 6);
 
-            // 8. 숙제 데이터 생성
+            // 8. 숙제 데이터 생성 (Lesson과 연결)
             Homework homework1 = new Homework();
             homework1.setTitle("수학 기본 개념 문제집");
             homework1.setQuestionCount(30);
@@ -384,6 +421,7 @@ public class DataInitializer {
             homework1.setDueDate(LocalDate.now().plusDays(8));
             homework1.setAcademy(academy1);
             homework1.setAcademyClass(class1);
+            homework1.setLesson(lesson1);
             homeworkRepository.save(homework1);
 
             Homework homework2 = new Homework();
@@ -393,6 +431,7 @@ public class DataInitializer {
             homework2.setDueDate(LocalDate.now().plusDays(2));
             homework2.setAcademy(academy1);
             homework2.setAcademyClass(class2);
+            homework2.setLesson(lesson2);
             homeworkRepository.save(homework2);
 
             Homework homework3 = new Homework();
@@ -402,6 +441,7 @@ public class DataInitializer {
             homework3.setDueDate(LocalDate.now().plusDays(5));
             homework3.setAcademy(academy2);
             homework3.setAcademyClass(class3);
+            homework3.setLesson(lesson3);
             homeworkRepository.save(homework3);
 
             Homework homework4 = new Homework();
@@ -411,6 +451,7 @@ public class DataInitializer {
             homework4.setDueDate(LocalDate.now().minusDays(2));
             homework4.setAcademy(academy2);
             homework4.setAcademyClass(class4);
+            homework4.setLesson(lesson6);
             homeworkRepository.save(homework4);
 
             Homework homework5 = new Homework();
@@ -420,6 +461,7 @@ public class DataInitializer {
             homework5.setDueDate(LocalDate.now().plusDays(1));
             homework5.setAcademy(academy1);
             homework5.setAcademyClass(class1);
+            homework5.setLesson(lesson4);
             homeworkRepository.save(homework5);
 
             Homework homework6 = new Homework();
@@ -429,6 +471,7 @@ public class DataInitializer {
             homework6.setDueDate(LocalDate.now().plusDays(4));
             homework6.setAcademy(academy1);
             homework6.setAcademyClass(class2);
+            homework6.setLesson(lesson5);
             homeworkRepository.save(homework6);
 
             log.info("Created {} homeworks", 6);
@@ -475,10 +518,11 @@ public class DataInitializer {
             log.info("Sample data initialization completed successfully!");
             log.info("===================================================");
             log.info("Summary:");
-            log.info("- Teachers: 2");
+            log.info("- Teachers: 1");
             log.info("- Academies: 2");
             log.info("- Classes: 4");
             log.info("- Students: 4");
+            log.info("- Lessons: 6");
             log.info("- Tests: 3");
             log.info("- Test Questions: 45");
             log.info("- Student Submissions: 7");

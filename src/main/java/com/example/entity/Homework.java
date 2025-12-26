@@ -44,6 +44,10 @@ public class Homework {
     @JoinColumn(name = "class_id", nullable = false)
     private AcademyClass academyClass;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lesson_id", nullable = false)
+    private Lesson lesson;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -4,6 +4,7 @@ import com.example.dto.HomeworkDto;
 import com.example.entity.Academy;
 import com.example.entity.Homework;
 import com.example.entity.AcademyClass;
+import com.example.entity.Lesson;
 import com.example.repository.AcademyRepository;
 import com.example.repository.HomeworkRepository;
 import com.example.repository.AcademyClassRepository;
@@ -20,6 +21,7 @@ public class HomeworkService {
     private final HomeworkRepository homeworkRepository;
     private final AcademyRepository academyRepository;
     private final AcademyClassRepository academyClassRepository;
+    private final LessonService lessonService;
 
     public Page<HomeworkDto> getHomeworks(Pageable pageable) {
         return homeworkRepository.findAll(pageable).map(HomeworkDto::from);
@@ -37,6 +39,13 @@ public class HomeworkService {
         AcademyClass academyClass = academyClassRepository.findById(dto.getClassId())
                 .orElseThrow(() -> new RuntimeException("Class not found"));
 
+        // Auto-create lesson for today (or use dueDate if provided)
+        java.time.LocalDate lessonDate = dto.getDueDate() != null ? dto.getDueDate() : java.time.LocalDate.now();
+        Lesson lesson = lessonService.getOrCreateLesson(
+                dto.getAcademyId(),
+                dto.getClassId(),
+                lessonDate);
+
         Homework homework = Homework.builder()
                 .title(dto.getTitle())
                 .questionCount(dto.getQuestionCount())
@@ -44,6 +53,7 @@ public class HomeworkService {
                 .dueDate(dto.getDueDate())
                 .academy(academy)
                 .academyClass(academyClass)
+                .lesson(lesson)
                 .build();
 
         homework = homeworkRepository.save(homework);
