@@ -48,7 +48,8 @@ onMounted(() => {
 // Refetch user when route changes (e.g., after login)
 watch(() => route.path, () => {
   fetchCurrentUser()
-})</script>
+})
+</script>
 
 <template>
   <el-container style="min-height: 100vh">

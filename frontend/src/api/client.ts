@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 const client = axios.create({
   baseURL: API_BASE_URL,
@@ -70,15 +70,6 @@ interface Submission {
   testTitle?: string;
   totalScore: number;
   submittedAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface Feedback {
-  id?: number;
-  submission?: Submission;
-  teacherName: string;
-  content: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -186,17 +177,6 @@ export const submissionAPI = {
   getSubmission: (id: number) => client.get(`/submissions/${id}`),
   getByTestId: (testId: number) => client.get(`/submissions/test/${testId}`),
   getStudentSubmissions: (studentId: number) => client.get(`/submissions/student/${studentId}`),
-  getSubmissionFeedbacks: (id: number) => client.get(`/submissions/${id}/feedback`),
-};
-
-// Feedback API
-export const feedbackAPI = {
-  getByTestId: (testId: number) => client.get(`/feedback/test/${testId}`),
-  create: (data: Omit<Feedback, 'id' | 'submission' | 'createdAt'> & { submissionId: number }) =>
-    client.post('/feedback', data),
-  delete: (id: number) => client.delete(`/feedback/${id}`),
-  getStudentFeedbacks: (studentId: number) => client.get(`/feedback/student/${studentId}`),
-  updateFeedback: (id: number, data: Feedback) => client.put(`/feedback/${id}`, data),
 };
 
 // Homeworks API
@@ -281,4 +261,4 @@ export const dailyFeedbackAPI = {
 
 export default client;
 
-export type { Academy, AcademyClass, Student, Test, Question, Submission, Feedback, Homework, StudentHomework, Lesson, LoginDto, AuthResponse, DailyFeedback, HomeworkSummary, TestFeedback, QuestionAccuracy };
+export type { Academy, AcademyClass, Student, Test, Question, Submission, Homework, StudentHomework, Lesson, LoginDto, AuthResponse, DailyFeedback, HomeworkSummary, TestFeedback, QuestionAccuracy };

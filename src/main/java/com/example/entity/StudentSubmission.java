@@ -50,8 +50,4 @@ public class StudentSubmission {
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<StudentSubmissionDetail> details = new ArrayList<>();
-
-    @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<TeacherFeedback> feedbacks = new ArrayList<>();
 }

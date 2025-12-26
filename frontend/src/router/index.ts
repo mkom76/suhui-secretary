@@ -51,12 +51,6 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresRole: 'TEACHER' }
     },
     {
-      path: '/tests/:id/feedback',
-      name: 'test-feedback',
-      component: () => import('../views/TestFeedbackView.vue'),
-      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
-    },
-    {
       path: '/homeworks',
       name: 'homeworks',
       component: () => import('../views/HomeworksView.vue'),

@@ -3,8 +3,6 @@ import {computed, onMounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {ElMessage} from 'element-plus'
 import {
-  type Feedback,
-  feedbackAPI,
   type Student,
   studentAPI,
   type StudentHomework,
@@ -25,7 +23,6 @@ const studentId = route.params.id as string
 const loading = ref(false)
 const student = ref<Student | null>(null)
 const submissions = ref<Submission[]>([])
-const feedbacks = ref<Feedback[]>([])
 const testStats = ref<Record<number, any>>({})
 const studentHomeworks = ref<StudentHomework[]>([])
 const activeTab = ref('test')
@@ -177,10 +174,9 @@ const svgTransform = computed(() => {
 const fetchStudentDetail = async () => {
   loading.value = true
   try {
-    const [studentRes, submissionsRes, feedbacksRes, homeworksRes] = await Promise.all([
+    const [studentRes, submissionsRes, homeworksRes] = await Promise.all([
       studentAPI.getStudent(Number(studentId)),
       submissionAPI.getStudentSubmissions(Number(studentId)),
-      feedbackAPI.getStudentFeedbacks(Number(studentId)),
       studentHomeworkAPI.getByStudentId(Number(studentId))
     ])
 
@@ -191,7 +187,6 @@ const fetchStudentDetail = async () => {
         const dateB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0
         return dateA - dateB
       })
-    feedbacks.value = feedbacksRes.data.content || feedbacksRes.data
     studentHomeworks.value = homeworksRes.data.content || homeworksRes.data
 
     // 각 시험의 통계 가져오기
@@ -628,50 +623,6 @@ onMounted(() => {
       </el-table>
 
       <el-empty v-if="submissions.length === 0" description="아직 응시한 시험이 없습니다" />
-    </el-card>
-
-    <!-- 피드백 목록 -->
-    <el-card shadow="never">
-      <template #header>
-        <div style="display: flex; align-items: center; gap: 8px">
-          <el-icon color="#e6a23c">
-            <ChatLineRound />
-          </el-icon>
-          <span style="font-weight: 600">선생님 피드백</span>
-        </div>
-      </template>
-
-      <el-timeline v-if="feedbacks.length > 0">
-        <el-timeline-item
-          v-for="feedback in feedbacks"
-          :key="feedback.id"
-          :timestamp="feedback.createdAt ? new Date(feedback.createdAt).toLocaleString('ko-KR') : ''"
-          placement="top"
-        >
-          <el-card>
-            <div style="margin-bottom: 8px">
-              <el-tag type="info" size="small">{{ feedback.submission?.testTitle || '시험' }}</el-tag>
-              <el-tag type="success" size="small" style="margin-left: 8px">
-                {{ feedback.submission?.totalScore }}점
-              </el-tag>
-            </div>
-            <div style="font-weight: 600; margin-bottom: 8px; color: #303133">
-              {{ feedback.teacherName }}
-            </div>
-            <div style="color: #606266; line-height: 1.6">
-              {{ feedback.content }}
-            </div>
-          </el-card>
-        </el-timeline-item>
-      </el-timeline>
-
-      <el-empty v-else description="아직 피드백이 없습니다">
-        <template #image>
-          <el-icon size="60" color="#c0c4cc">
-            <ChatLineRound />
-          </el-icon>
-        </template>
-      </el-empty>
     </el-card>
 
     <!-- 차트 확대 모달 -->

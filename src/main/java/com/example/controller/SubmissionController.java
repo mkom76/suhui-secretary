@@ -1,8 +1,6 @@
 package com.example.controller;
 
 import com.example.dto.StudentSubmissionDto;
-import com.example.dto.TeacherFeedbackDto;
-import com.example.service.FeedbackService;
 import com.example.service.SubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +15,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SubmissionController {
     private final SubmissionService submissionService;
-    private final FeedbackService feedbackService;
     
     @PostMapping
     public ResponseEntity<StudentSubmissionDto> submitAnswers(
@@ -48,18 +45,5 @@ public class SubmissionController {
     @GetMapping("/test/{testId}")
     public ResponseEntity<List<StudentSubmissionDto>> getTestSubmissions(@PathVariable Long testId) {
         return ResponseEntity.ok(submissionService.getTestSubmissions(testId));
-    }
-    
-    @GetMapping("/{id}/feedback")
-    public ResponseEntity<List<TeacherFeedbackDto>> getSubmissionFeedbacks(@PathVariable Long id) {
-        return ResponseEntity.ok(feedbackService.getSubmissionFeedbacks(id));
-    }
-    
-    @PostMapping("/{id}/feedback")
-    public ResponseEntity<TeacherFeedbackDto> createFeedback(
-            @PathVariable Long id,
-            @RequestBody TeacherFeedbackDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(feedbackService.createFeedback(id, dto));
     }
 }

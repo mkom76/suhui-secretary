@@ -39,3 +39,8 @@ out/
 ### Application Local Configuration ###
 application-local.yml
 **/application-local.yml
+
+### Deployment Configuration ###
+.env
+certbot/
+*.log
