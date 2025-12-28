@@ -35,6 +35,7 @@ const isTeacher = computed(() => currentUser.value.role === 'TEACHER')
 // 모달 상태
 const chartModalVisible = ref(false)
 const feedbackDialogVisible = ref(false)
+const incompleteHomeworksDialogVisible = ref(false)
 const feedbackForm = ref({
   lessonId: null as number | null,
   content: '',
@@ -114,20 +115,27 @@ const minScore = computed(() => {
 })
 
 // 숙제 통계
+const incompleteHomeworks = computed(() => {
+  return studentHomeworks.value.filter(sh => (sh.completion || 0) < 100)
+})
+
+const incompleteHomeworkCount = computed(() => {
+  return incompleteHomeworks.value.length
+})
+
 const averageCompletion = computed(() => {
   if (studentHomeworks.value.length === 0) return 0
   const total = studentHomeworks.value.reduce((sum, sh) => sum + (sh.completion || 0), 0)
   return Math.round(total / studentHomeworks.value.length * 10) / 10
 })
 
-const maxCompletion = computed(() => {
-  if (studentHomeworks.value.length === 0) return 0
-  return Math.max(...studentHomeworks.value.map(sh => sh.completion || 0))
-})
-
 const minCompletion = computed(() => {
   if (studentHomeworks.value.length === 0) return 0
   return Math.min(...studentHomeworks.value.map(sh => sh.completion || 0))
+})
+
+const totalIncorrectCount = computed(() => {
+  return studentHomeworks.value.reduce((sum, sh) => sum + (sh.incorrectCount || 0), 0)
 })
 
 // 모달 열기
@@ -517,13 +525,31 @@ onMounted(() => {
             <el-tab-pane label="숙제 통계" name="homework">
               <el-row :gutter="16" style="margin-bottom: 16px">
                 <el-col :span="12">
-                  <div style="text-align: center; padding: 20px; background: #fff7e6; border-radius: 8px">
-                    <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
-                      {{ studentHomeworks.length }}
+                  <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px; position: relative">
+                    <div style="font-size: 32px; font-weight: 600; color: #f56c6c; margin-bottom: 8px">
+                      {{ incompleteHomeworkCount }}
                     </div>
-                    <div style="color: #909399; font-size: 14px">총 숙제 수</div>
+                    <div
+                      style="color: #409eff; font-size: 14px; cursor: pointer; text-decoration: underline; transition: color 0.3s"
+                      @click="incompleteHomeworksDialogVisible = true"
+                      @mouseenter="e => e.currentTarget.style.color = '#66b1ff'"
+                      @mouseleave="e => e.currentTarget.style.color = '#409eff'"
+                    >
+                      미완성 숙제 수
+                    </div>
                   </div>
                 </el-col>
+                <el-col :span="12">
+                  <div style="text-align: center; padding: 20px; background: #fff7e6; border-radius: 8px">
+                    <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
+                      {{ totalIncorrectCount }}개
+                    </div>
+                    <div style="color: #909399; font-size: 14px">총 오답 개수</div>
+                  </div>
+                </el-col>
+              </el-row>
+
+              <el-row :gutter="16">
                 <el-col :span="12">
                   <div style="padding: 20px; background: #f0fdf4; border-radius: 8px; text-align: center">
                     <div style="color: #909399; font-size: 14px; margin-bottom: 12px">평균 완성도</div>
@@ -536,23 +562,8 @@ onMounted(() => {
                     />
                   </div>
                 </el-col>
-              </el-row>
-
-              <el-row :gutter="16">
                 <el-col :span="12">
                   <div style="padding: 20px; background: #fffbeb; border-radius: 8px; text-align: center">
-                    <div style="color: #909399; font-size: 14px; margin-bottom: 12px">최고 완성도</div>
-                    <el-progress
-                      type="circle"
-                      :percentage="maxCompletion"
-                      :color="maxCompletion >= 80 ? '#67c23a' : maxCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
-                      :width="120"
-                      :stroke-width="10"
-                    />
-                  </div>
-                </el-col>
-                <el-col :span="12">
-                  <div style="padding: 20px; background: #fef2f2; border-radius: 8px; text-align: center">
                     <div style="color: #909399; font-size: 14px; margin-bottom: 12px">최저 완성도</div>
                     <el-progress
                       type="circle"
@@ -569,6 +580,13 @@ onMounted(() => {
               <div v-if="studentHomeworks.length > 0" style="margin-top: 24px">
                 <el-table :data="studentHomeworks" style="width: 100%">
                   <el-table-column prop="homeworkTitle" label="숙제명" min-width="200" />
+                  <el-table-column label="오답 개수" width="120" align="center">
+                    <template #default="{ row }">
+                      <el-tag :type="(row.incorrectCount || 0) === 0 ? 'success' : 'warning'">
+                        {{ row.incorrectCount || 0 }}개
+                      </el-tag>
+                    </template>
+                  </el-table-column>
                   <el-table-column label="완성도" width="150" align="center">
                     <template #default="{ row }">
                       <el-progress
@@ -823,6 +841,42 @@ onMounted(() => {
       <template #footer>
         <el-button @click="feedbackDialogVisible = false">취소</el-button>
         <el-button type="primary" @click="submitTodayFeedback">저장</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 미완성 숙제 목록 다이얼로그 -->
+    <el-dialog
+      v-model="incompleteHomeworksDialogVisible"
+      title="미완성 숙제 목록"
+      width="700px"
+    >
+      <div v-if="incompleteHomeworks.length > 0">
+        <el-table :data="incompleteHomeworks" style="width: 100%">
+          <el-table-column prop="homeworkTitle" label="숙제명" min-width="200" />
+          <el-table-column label="오답 개수" width="120" align="center">
+            <template #default="{ row }">
+              <el-tag type="warning">{{ row.incorrectCount || 0 }}개</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="완성도" width="150" align="center">
+            <template #default="{ row }">
+              <el-progress
+                :percentage="row.completion || 0"
+                :color="row.completion >= 80 ? '#67c23a' : row.completion >= 60 ? '#e6a23c' : '#f56c6c'"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column label="제출일" width="120">
+            <template #default="{ row }">
+              <span v-if="row.createdAt">{{ new Date(row.createdAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) }}</span>
+              <span v-else style="color: #909399">-</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      <el-empty v-else description="모든 숙제를 완료했습니다!" />
+      <template #footer>
+        <el-button @click="incompleteHomeworksDialogVisible = false">닫기</el-button>
       </template>
     </el-dialog>
   </div>
