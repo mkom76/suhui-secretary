@@ -21,7 +21,7 @@ const fetchTestDetail = async () => {
       submissionAPI.getByTestId(Number(testId)),
       testAPI.getTestStats(Number(testId))
     ])
-    
+
     test.value = testResponse.data
     submissions.value = submissionsResponse.data.content || submissionsResponse.data
     stats.value = statsResponse.data
@@ -34,10 +34,6 @@ const fetchTestDetail = async () => {
 
 const navigateToAnswers = () => {
   router.push(`/tests/${testId}/answers`)
-}
-
-const navigateToFeedback = () => {
-  router.push(`/tests/${testId}/feedback`)
 }
 
 const goBack = () => {
@@ -61,14 +57,10 @@ onMounted(() => {
             </el-icon>
             {{ test?.title || '시험 상세보기' }}
           </h1>
-          <p style="margin: 8px 0 0; color: #909399">시험 ID: {{ testId }}</p>
         </div>
         <div style="display: flex; gap: 12px">
           <el-button type="warning" @click="navigateToAnswers" :icon="EditPen">
             정답 관리
-          </el-button>
-          <el-button type="info" @click="navigateToFeedback" :icon="ChatLineRound">
-            피드백 관리
           </el-button>
           <el-button @click="goBack" :icon="ArrowLeft">
             목록으로
@@ -90,7 +82,7 @@ onMounted(() => {
                 <span style="font-weight: 600">시험 정보</span>
               </div>
             </template>
-            
+
             <el-descriptions :column="2" border>
               <el-descriptions-item label="시험명" label-align="right">
                 <span style="font-weight: 500">{{ test?.title }}</span>
@@ -115,7 +107,7 @@ onMounted(() => {
                 <span style="font-weight: 600">통계</span>
               </div>
             </template>
-            
+
             <div style="text-align: center">
               <div style="margin-bottom: 20px">
                 <div style="font-size: 32px; font-weight: 600; color: #409eff; margin-bottom: 4px">
@@ -123,7 +115,7 @@ onMounted(() => {
                 </div>
                 <div style="color: #909399; font-size: 14px">총 응시자 수</div>
               </div>
-              
+
               <div style="display: flex; justify-content: space-around">
                 <div>
                   <div style="font-size: 20px; font-weight: 500; color: #67c23a; margin-bottom: 4px">
@@ -153,9 +145,9 @@ onMounted(() => {
             <span style="font-weight: 600">응시 현황</span>
           </div>
         </template>
-        
-        <el-table 
-          :data="submissions" 
+
+        <el-table
+          :data="submissions"
           style="width: 100%"
           stripe
         >
@@ -167,10 +159,10 @@ onMounted(() => {
               </div>
             </template>
           </el-table-column>
-          
+
           <el-table-column prop="totalScore" label="점수" width="100" align="center">
             <template #default="{ row }">
-              <el-tag 
+              <el-tag
                 :type="row.totalScore >= 80 ? 'success' : row.totalScore >= 60 ? 'warning' : 'danger'"
                 size="large"
               >
@@ -178,7 +170,7 @@ onMounted(() => {
               </el-tag>
             </template>
           </el-table-column>
-          
+
           <el-table-column label="응시일" width="180">
             <template #default="{ row }">
               <div style="display: flex; align-items: center; gap: 8px">
@@ -189,7 +181,7 @@ onMounted(() => {
               </div>
             </template>
           </el-table-column>
-          
+
           <el-table-column label="학생 정보" min-width="250">
             <template #default="{ row }">
               <div style="font-size: 13px; color: #606266">
@@ -200,7 +192,7 @@ onMounted(() => {
             </template>
           </el-table-column>
         </el-table>
-        
+
         <el-empty v-if="submissions.length === 0" description="아직 응시한 학생이 없습니다" />
       </el-card>
     </div>

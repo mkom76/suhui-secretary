@@ -144,7 +144,7 @@ onMounted(() => {
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="academyName" label="학원" width="200" />
+        <el-table-column prop="academyName" label="학원" width="150" />
         <el-table-column prop="name" label="반명" />
         <el-table-column label="작업" width="150" align="center">
           <template #default="{ row }">

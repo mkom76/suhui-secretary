@@ -163,7 +163,6 @@ onMounted(() => {
             </el-icon>
             정답 관리
           </h1>
-          <p style="margin: 8px 0 0; color: #909399">시험 ID: {{ testId }}</p>
         </div>
         <div style="display: flex; gap: 12px">
           <el-button type="primary" @click="handleAddQuestion">

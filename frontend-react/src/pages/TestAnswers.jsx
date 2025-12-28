@@ -71,7 +71,6 @@ function TestAnswers() {
               <HiChartBar className="h-8 w-8 text-green-600" />
               정답 관리
             </h1>
-            <p className="text-gray-600 mt-2">시험 ID: {id}</p>
           </div>
           <Button
             color="gray"

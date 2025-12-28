@@ -234,6 +234,7 @@ export interface HomeworkSummary {
   homeworkId: number;
   homeworkTitle: string;
   questionCount: number;
+  incorrectCount?: number;
   completion?: number;
   dueDate?: string;
 }

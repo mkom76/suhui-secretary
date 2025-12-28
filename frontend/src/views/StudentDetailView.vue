@@ -307,7 +307,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-loading="loading">
+  <div v-loading="loading" style="padding: 24px; max-width: 1200px; margin: 0 auto">
     <!-- Header -->
     <el-card shadow="never" style="margin-bottom: 24px">
       <div>

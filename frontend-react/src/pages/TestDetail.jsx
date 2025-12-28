@@ -36,7 +36,6 @@ function TestDetail() {
               <HiClipboardList className="h-8 w-8 text-purple-600" />
               시험 상세 정보
             </h1>
-            <p className="text-gray-600 mt-2">시험 ID: {id}</p>
           </div>
           <Button
             color="gray"

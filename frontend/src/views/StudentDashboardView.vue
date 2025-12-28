@@ -96,7 +96,7 @@ onMounted(() => {
           </el-button>
           <el-button type="primary" @click="$router.push('/student/daily-feedback')">
             <el-icon style="margin-right: 8px"><Document /></el-icon>
-            오늘의 학습 피드백
+            수업 피드백
           </el-button>
         </div>
       </div>

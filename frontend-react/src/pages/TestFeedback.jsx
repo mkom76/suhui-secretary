@@ -78,7 +78,6 @@ function TestFeedback() {
               <HiUser className="h-8 w-8 text-purple-600" />
               피드백 관리
             </h1>
-            <p className="text-gray-600 mt-2">시험 ID: {id}</p>
           </div>
           <div className="flex gap-3">
             <Button

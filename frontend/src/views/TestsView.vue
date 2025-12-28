@@ -129,7 +129,7 @@ const handleSubmit = async () => {
 
 const handleDelete = async (test: Test) => {
   if (!test.id) return
-  
+
   try {
     await ElMessageBox.confirm(
       `${test.title} 시험을 삭제하시겠습니까?`,
@@ -140,7 +140,7 @@ const handleDelete = async (test: Test) => {
         type: 'warning',
       }
     )
-    
+
     await testAPI.deleteTest(test.id)
     ElMessage.success('시험이 삭제되었습니다.')
     fetchTests()
@@ -153,10 +153,6 @@ const handleDelete = async (test: Test) => {
 
 const navigateToAnswers = (testId: number) => {
   router.push(`/tests/${testId}/answers`)
-}
-
-const navigateToFeedback = (testId: number) => {
-  router.push(`/tests/${testId}/feedback`)
 }
 
 const navigateToDetail = (testId: number) => {
@@ -212,13 +208,13 @@ onMounted(() => {
 
     <!-- Tests Table -->
     <el-card shadow="never">
-      <el-table 
-        :data="tableData" 
+      <el-table
+        :data="tableData"
         v-loading="loading"
         style="width: 100%"
         stripe
       >
-        <el-table-column prop="title" label="시험명" min-width="180">
+        <el-table-column prop="title" label="시험명" min-width="220">
           <template #default="{ row }">
             <div
               style="display: flex; align-items: center; gap: 8px; cursor: pointer"
@@ -231,7 +227,7 @@ onMounted(() => {
             </div>
           </template>
         </el-table-column>
-        
+
         <el-table-column prop="questionCount" label="문제 수" width="100" align="center">
           <template #default="{ row }">
             <el-tag size="small" type="info">{{ row.questionCount || 0 }}문제</el-tag>
@@ -255,7 +251,7 @@ onMounted(() => {
           </template>
         </el-table-column>
 
-        <el-table-column label="등록일" width="120">
+        <el-table-column label="등록일" width="150">
           <template #default="{ row }">
             <div style="display: flex; align-items: center; gap: 8px">
               <el-icon color="#909399">
@@ -267,7 +263,7 @@ onMounted(() => {
             </div>
           </template>
         </el-table-column>
-        
+
         <el-table-column label="관리" width="180" fixed="right">
           <template #default="{ row }">
             <el-tooltip content="정답 관리" placement="top">
@@ -278,16 +274,6 @@ onMounted(() => {
                 @click="navigateToAnswers(row.id)"
               >
                 <el-icon><EditPen /></el-icon>
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="피드백" placement="top">
-              <el-button
-                size="small"
-                type="info"
-                circle
-                @click="navigateToFeedback(row.id)"
-              >
-                <el-icon><ChatLineRound /></el-icon>
               </el-button>
             </el-tooltip>
             <el-tooltip content="수정" placement="top">
@@ -316,7 +302,7 @@ onMounted(() => {
     </el-card>
 
     <!-- Add/Edit Dialog -->
-    <el-dialog 
+    <el-dialog
       v-model="dialogVisible"
       :title="editMode ? '시험 정보 수정' : '새 시험 추가'"
       width="600px"

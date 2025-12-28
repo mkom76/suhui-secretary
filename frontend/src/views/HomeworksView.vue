@@ -322,7 +322,7 @@ onMounted(() => {
           </template>
         </el-table-column>
 
-        <el-table-column label="등록일" width="120">
+        <el-table-column label="등록일" width="150">
           <template #default="{ row }">
             <div style="display: flex; align-items: center; gap: 8px">
               <el-icon color="#909399">

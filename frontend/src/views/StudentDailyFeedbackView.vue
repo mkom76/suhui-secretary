@@ -102,14 +102,6 @@ const todayHomeworkStatus = computed(() => {
   }
 })
 
-const testPerformance = computed(() => {
-  if (!feedback.value?.todayTest) return null
-  const score = feedback.value.todayTest.studentScore
-  if (score >= 90) return { level: 'success', text: '우수', color: '#67c23a' }
-  if (score >= 70) return { level: '', text: '양호', color: '#409eff' }
-  if (score >= 50) return { level: 'warning', text: '보통', color: '#e6a23c' }
-  return { level: 'danger', text: '노력필요', color: '#f56c6c' }
-})
 
 const incorrectQuestionsWithRate = computed(() => {
   if (!feedback.value?.todayTest) return []
@@ -141,7 +133,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-loading="loading" style="max-width: 1200px; margin: 0 auto; padding: 24px">
+  <div v-loading="loading" style="padding: 24px; max-width: 1200px; min-width: 550px; margin: 0 auto">
     <!-- 선생님용 헤더 (뒤로가기 버튼 포함) -->
     <el-card v-if="isTeacherView" shadow="never" style="margin-bottom: 24px">
       <div style="display: flex; justify-content: space-between; align-items: center">
@@ -191,7 +183,7 @@ onMounted(() => {
     <div v-if="feedback">
       <el-row :gutter="24" style="margin-bottom: 24px">
         <el-col :span="12">
-          <el-card shadow="hover">
+          <el-card shadow="never">
             <template #header>
               <div style="display: flex; align-items: center; gap: 8px">
                 <el-icon size="20" color="#409eff"><Document /></el-icon>
@@ -215,9 +207,9 @@ onMounted(() => {
                       :color="todayHomeworkStatus?.color"
                       style="flex: 1"
                     />
-                    <el-tag :color="todayHomeworkStatus?.color" style="color: white">
-                      {{ todayHomeworkStatus?.text }}
-                    </el-tag>
+                  </div>
+                  <div v-if="feedback.todayHomework.incorrectCount !== null && feedback.todayHomework.incorrectCount !== undefined" style="margin-top: 8px; color: #909399; font-size: 13px">
+                    오답 개수: {{ feedback.todayHomework.incorrectCount }} / {{ feedback.todayHomework.questionCount }}
                   </div>
                 </el-descriptions-item>
                 <el-descriptions-item label="마감일" v-if="feedback.todayHomework.dueDate">
@@ -230,7 +222,7 @@ onMounted(() => {
         </el-col>
 
         <el-col :span="12">
-          <el-card shadow="hover">
+          <el-card shadow="never">
             <template #header>
               <div style="display: flex; align-items: center; gap: 8px">
                 <el-icon size="20" color="#67c23a"><Calendar /></el-icon>
@@ -247,12 +239,6 @@ onMounted(() => {
                 <el-descriptions-item label="문제 수">
                   {{ feedback.nextHomework.questionCount }}문제
                 </el-descriptions-item>
-                <el-descriptions-item label="완성도">
-                  <div v-if="feedback.nextHomework.completion !== null && feedback.nextHomework.completion !== undefined">
-                    <el-progress :percentage="feedback.nextHomework.completion" />
-                  </div>
-                  <span v-else style="color: #909399">아직 시작하지 않음</span>
-                </el-descriptions-item>
                 <el-descriptions-item label="마감일" v-if="feedback.nextHomework.dueDate">
                   {{ new Date(feedback.nextHomework.dueDate).toLocaleDateString('ko-KR') }}
                 </el-descriptions-item>
@@ -263,15 +249,15 @@ onMounted(() => {
         </el-col>
       </el-row>
 
-      <el-card v-if="feedback.todayTest" shadow="hover" style="margin-bottom: 24px">
+      <el-card v-if="feedback.todayTest" shadow="never" style="margin-bottom: 24px">
         <template #header>
           <div style="display: flex; justify-content: space-between; align-items: center">
             <div style="display: flex; align-items: center; gap: 8px">
               <el-icon size="20" color="#e6a23c"><EditPen /></el-icon>
               <span style="font-weight: 600; font-size: 16px">오늘의 시험 결과</span>
             </div>
-            <el-tag :type="testPerformance?.level" size="large">
-              {{ feedback.todayTest.studentScore }}점 - {{ testPerformance?.text }}
+            <el-tag :type="'success'" size="large">
+              {{ feedback.todayTest.studentScore }}점
             </el-tag>
           </div>
         </template>
@@ -314,11 +300,6 @@ onMounted(() => {
               </template>
             </el-table-column>
           </el-table>
-          <div style="margin-top: 12px; padding: 12px; background: #f0f9ff; border-radius: 8px; font-size: 13px; color: #606266">
-            <div style="font-weight: 600; margin-bottom: 6px; color: #409eff">💡 분석 팁</div>
-            <div>• <span style="color: #67c23a; font-weight: 600">정답률이 높은 문제</span>: 실수를 줄이기 위해 꼼꼼히 확인하세요</div>
-            <div>• <span style="color: #f56c6c; font-weight: 600">정답률이 낮은 문제</span>: 어려운 문제입니다. 개념을 다시 공부해보세요</div>
-          </div>
         </div>
 
         <el-empty v-else description="모든 문제를 맞췄습니다! 훌륭해요!"
@@ -330,7 +311,7 @@ onMounted(() => {
       </el-card>
 
       <!-- 시험 없는 경우 표시 -->
-      <el-card v-else shadow="hover" style="margin-bottom: 24px">
+      <el-card v-else shadow="never" style="margin-bottom: 24px">
         <template #header>
           <div style="display: flex; align-items: center; gap: 8px">
             <el-icon size="20" color="#909399"><EditPen /></el-icon>
@@ -344,7 +325,7 @@ onMounted(() => {
         </el-empty>
       </el-card>
 
-      <el-card shadow="hover">
+      <el-card shadow="never">
         <template #header>
           <div style="display: flex; align-items: center; gap: 8px">
             <el-icon size="20" color="#f56c6c"><ChatDotRound /></el-icon>
@@ -382,7 +363,7 @@ onMounted(() => {
 
 <style scoped>
 .el-card {
-  border-radius: 12px;
+  border-radius: 8px;
 }
 
 .el-descriptions :deep(.el-descriptions__label) {
