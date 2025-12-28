@@ -26,12 +26,12 @@ public class StudentHomeworkController {
     }
 
     @PutMapping("/student/{studentId}/homework/{homeworkId}")
-    public ResponseEntity<StudentHomeworkDto> updateCompletion(
+    public ResponseEntity<StudentHomeworkDto> updateIncorrectCount(
             @PathVariable Long studentId,
             @PathVariable Long homeworkId,
             @RequestBody Map<String, Integer> request) {
-        Integer completion = request.get("completion");
-        return ResponseEntity.ok(studentHomeworkService.updateCompletion(studentId, homeworkId, completion));
+        Integer incorrectCount = request.get("incorrectCount");
+        return ResponseEntity.ok(studentHomeworkService.updateIncorrectCount(studentId, homeworkId, incorrectCount));
     }
 
     @DeleteMapping("/student/{studentId}/homework/{homeworkId}")

@@ -248,7 +248,7 @@ curl http://localhost/api/actuator/health
 
 로그인 테스트:
 - 선생님: username=suhui, pin=123456
-- 학생: studentId=1, pin=1234
+- 학생: studentId=1, pin=1111
 
 ---
 

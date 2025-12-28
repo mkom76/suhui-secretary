@@ -11,6 +11,7 @@ const route = useRoute()
 
 const activeIndex = ref('/')
 const currentUser = ref<AuthResponse>({})
+const drawerVisible = ref(false)
 
 const isLoginPage = computed(() => route.path === '/login')
 const isTeacherRoute = computed(() => currentUser.value.role === 'TEACHER' && !isLoginPage.value)
@@ -27,6 +28,7 @@ const fetchCurrentUser = async () => {
 
 const handleSelect = (index: string) => {
   router.push(index)
+  drawerVisible.value = false // Close drawer after navigation
 }
 
 const handleLogout = async () => {
@@ -53,11 +55,25 @@ watch(() => route.path, () => {
 
 <template>
   <el-container style="min-height: 100vh">
-    <!-- Header with Navigation (Teacher only) -->
-    <el-header v-if="isTeacherRoute" style="background-color: #fff; border-bottom: 1px solid #dcdfe6; padding: 0">
-      <el-row justify="space-between" align="middle" style="height: 100%; padding: 0 20px">
-        <el-col :span="6">
-          <div style="display: flex; align-items: center; gap: 12px">
+    <!-- Header (Teacher only) -->
+    <el-header v-if="isTeacherRoute" style="background-color: #fff; border-bottom: 1px solid #dcdfe6; padding: 0 20px">
+      <div style="display: flex; align-items: center; justify-content: space-between; height: 100%">
+        <!-- Left: Hamburger Menu + Logo -->
+        <div style="display: flex; align-items: center; gap: 16px">
+          <el-button
+            type="primary"
+            circle
+            @click="drawerVisible = true"
+            style="width: 40px; height: 40px"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </el-button>
+
+          <div style="display: flex; align-items: center; gap: 12px; cursor: pointer" @click="router.push('/')">
             <el-icon size="32" color="#409eff">
               <School />
             </el-icon>
@@ -70,52 +86,64 @@ watch(() => route.path, () => {
               </div>
             </div>
           </div>
-        </el-col>
+        </div>
 
-        <el-col :span="12">
-          <el-menu
-            :default-active="route.path"
-            mode="horizontal"
-            style="border-bottom: none; justify-content: center"
-            @select="handleSelect"
-          >
-            <el-menu-item index="/students">
-              <el-icon><User /></el-icon>
-              학생 관리
-            </el-menu-item>
-            <el-menu-item index="/tests">
-              <el-icon><Document /></el-icon>
-              시험 관리
-            </el-menu-item>
-            <el-menu-item index="/homeworks">
-              <el-icon><Notebook /></el-icon>
-              숙제 관리
-            </el-menu-item>
-            <el-menu-item index="/academies">
-              <el-icon><OfficeBuilding /></el-icon>
-              학원 관리
-            </el-menu-item>
-            <el-menu-item index="/academy-classes">
-              <el-icon><Grid /></el-icon>
-              반 관리
-            </el-menu-item>
-            <el-menu-item index="/settings">
-              <el-icon><Setting /></el-icon>
-              설정
-            </el-menu-item>
-          </el-menu>
-        </el-col>
-
-        <el-col :span="6" style="text-align: right">
-          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px">
-            <span style="color: #606266; font-size: 14px">{{ currentUser.name }}님</span>
-            <el-button type="danger" size="small" @click="handleLogout">
-              로그아웃
-            </el-button>
-          </div>
-        </el-col>
-      </el-row>
+        <!-- Right: User Info + Logout -->
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="color: #606266; font-size: 14px">{{ currentUser.name }}님</span>
+          <el-button type="danger" size="small" @click="handleLogout">
+            로그아웃
+          </el-button>
+        </div>
+      </div>
     </el-header>
+
+    <!-- Navigation Drawer -->
+    <el-drawer
+      v-model="drawerVisible"
+      title="메뉴"
+      direction="ltr"
+      size="280px"
+    >
+      <el-menu
+        :default-active="route.path"
+        @select="handleSelect"
+      >
+        <el-menu-item index="/students">
+          <el-icon><User /></el-icon>
+          <span>학생 관리</span>
+        </el-menu-item>
+
+        <el-menu-item index="/tests">
+          <el-icon><Document /></el-icon>
+          <span>시험 관리</span>
+        </el-menu-item>
+
+        <el-menu-item index="/homeworks">
+          <el-icon><Notebook /></el-icon>
+          <span>숙제 관리</span>
+        </el-menu-item>
+
+        <el-divider style="margin: 12px 0" />
+
+        <el-menu-item index="/academies">
+          <el-icon><OfficeBuilding /></el-icon>
+          <span>학원 관리</span>
+        </el-menu-item>
+
+        <el-menu-item index="/academy-classes">
+          <el-icon><Grid /></el-icon>
+          <span>반 관리</span>
+        </el-menu-item>
+
+        <el-divider style="margin: 12px 0" />
+
+        <el-menu-item index="/settings">
+          <el-icon><Setting /></el-icon>
+          <span>설정</span>
+        </el-menu-item>
+      </el-menu>
+    </el-drawer>
 
     <!-- Main Content -->
     <el-main :style="{ padding: isLoginPage ? '0' : '24px', backgroundColor: isLoginPage ? '#fff' : '#f5f7fa' }">
@@ -125,10 +153,6 @@ watch(() => route.path, () => {
 </template>
 
 <style scoped>
-.el-menu--horizontal {
-  border-bottom: none !important;
-}
-
 .el-menu-item.is-active {
   background-color: #ecf5ff !important;
   color: #409eff !important;
@@ -136,5 +160,20 @@ watch(() => route.path, () => {
 
 .el-header {
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+}
+
+/* Drawer menu styling */
+:deep(.el-menu) {
+  border-right: none;
+}
+
+:deep(.el-drawer__header) {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #dcdfe6;
+}
+
+:deep(.el-drawer__body) {
+  padding: 0;
 }
 </style>

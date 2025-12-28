@@ -31,8 +31,9 @@ public class StudentHomework {
     @JoinColumn(name = "homework_id", nullable = false)
     private Homework homework;
 
-    @Column(name = "completion")
-    private Integer completion; // 0-100
+    @Column(name = "incorrect_count")
+    @Builder.Default
+    private Integer incorrectCount = 0; // 오답 개수
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -41,4 +42,15 @@ public class StudentHomework {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // 완성도 계산 (0-100)
+    public Integer getCompletion() {
+        if (homework == null || homework.getQuestionCount() == null || homework.getQuestionCount() == 0) {
+            return 0;
+        }
+        int total = homework.getQuestionCount();
+        int incorrect = incorrectCount != null ? incorrectCount : 0;
+
+        return (int) Math.round(((double)(total - incorrect) / total) * 100);
+    }
 }

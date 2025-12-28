@@ -64,31 +64,39 @@ onMounted(() => {
 
 <template>
   <div style="padding: 24px; max-width: 1200px; margin: 0 auto">
+    <!-- Top Right Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 16px">
+      <el-button @click="$router.push('/settings')">
+        <el-icon style="margin-right: 8px"><Setting /></el-icon>
+        설정
+      </el-button>
+      <el-button type="danger" @click="handleLogout">
+        로그아웃
+      </el-button>
+    </div>
+
     <!-- Header -->
     <el-card shadow="never" style="margin-bottom: 24px">
-      <div style="display: flex; justify-content: space-between; align-items: center">
-        <div>
-          <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #303133">
-            학생 대시보드
+      <div>
+        <div style="margin-bottom: 16px">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 600; color: #303133; display: flex; align-items: center; gap: 12px">
+            <el-icon size="32" color="#409eff">
+              <UserFilled />
+            </el-icon>
+            <span>{{ currentUser.name }}님</span>
           </h1>
-          <p style="margin: 8px 0 0; color: #909399">
-            안녕하세요, <strong>{{ currentUser.name }}</strong>님
-          </p>
-          <p v-if="studentInfo" style="margin: 4px 0 0; color: #909399; font-size: 14px">
-            {{ studentInfo.academyName }} - {{ studentInfo.className }}
+          <p v-if="studentInfo" style="margin: 8px 0 0 0; color: #909399; font-size: 14px">
+            {{ studentInfo.academyName }} · {{ studentInfo.className }}
           </p>
         </div>
-        <div style="display: flex; gap: 12px">
-          <el-button type="primary" size="large" @click="$router.push('/student/daily-feedback')">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap">
+          <el-button type="success" @click="$router.push(`/student/stats`)">
+            <el-icon style="margin-right: 8px"><TrendCharts /></el-icon>
+            내 학습 통계
+          </el-button>
+          <el-button type="primary" @click="$router.push('/student/daily-feedback')">
             <el-icon style="margin-right: 8px"><Document /></el-icon>
             오늘의 학습 피드백
-          </el-button>
-          <el-button @click="$router.push('/settings')">
-            <el-icon style="margin-right: 8px"><Setting /></el-icon>
-            설정
-          </el-button>
-          <el-button type="danger" @click="handleLogout">
-            로그아웃
           </el-button>
         </div>
       </div>
@@ -119,11 +127,10 @@ onMounted(() => {
                 <Document />
               </el-icon>
             </div>
-            <h3 style="margin: 0; font-size: 18px; color: #303133">사용 가능한 시험</h3>
+            <h3 style="margin: 0; font-size: 18px; color: #303133">전체 시험</h3>
             <p style="margin: 8px 0; color: #606266; font-size: 32px; font-weight: 700">
               {{ availableTests.length }}
             </p>
-            <p style="margin: 0; color: #909399; font-size: 14px">개의 시험</p>
           </div>
         </el-card>
       </el-col>
@@ -140,7 +147,6 @@ onMounted(() => {
             <p style="margin: 8px 0; color: #606266; font-size: 32px; font-weight: 700">
               {{ mySubmissions.length }}
             </p>
-            <p style="margin: 0; color: #909399; font-size: 14px">개의 시험</p>
           </div>
         </el-card>
       </el-col>

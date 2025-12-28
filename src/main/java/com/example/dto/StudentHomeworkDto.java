@@ -18,7 +18,8 @@ public class StudentHomeworkDto {
     private String studentName;
     private Long homeworkId;
     private String homeworkTitle;
-    private Integer completion;
+    private Integer incorrectCount; // 오답 개수
+    private Integer completion; // 완성도 (계산된 값, 0-100)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -29,6 +30,7 @@ public class StudentHomeworkDto {
                 .studentName(entity.getStudent().getName())
                 .homeworkId(entity.getHomework().getId())
                 .homeworkTitle(entity.getHomework().getTitle())
+                .incorrectCount(entity.getIncorrectCount())
                 .completion(entity.getCompletion())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())

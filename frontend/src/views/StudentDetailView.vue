@@ -18,15 +18,19 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const studentId = route.params.id as string
 
 const loading = ref(false)
+const currentUser = ref<any>({})
+const studentId = ref<string>('')
 const student = ref<Student | null>(null)
 const submissions = ref<Submission[]>([])
 const testStats = ref<Record<number, any>>({})
 const studentHomeworks = ref<StudentHomework[]>([])
 const activeTab = ref('test')
 const lessons = ref<Lesson[]>([])
+
+// 선생님인지 확인
+const isTeacher = computed(() => currentUser.value.role === 'TEACHER')
 
 // 모달 상태
 const chartModalVisible = ref(false)
@@ -174,10 +178,21 @@ const svgTransform = computed(() => {
 const fetchStudentDetail = async () => {
   loading.value = true
   try {
+    // 현재 사용자 정보 가져오기
+    const userRes = await authAPI.getCurrentUser()
+    currentUser.value = userRes.data
+
+    // 학생 ID 설정: STUDENT면 본인 ID, TEACHER면 route params ID
+    if (currentUser.value.role === 'STUDENT') {
+      studentId.value = String(currentUser.value.userId)
+    } else {
+      studentId.value = route.params.id as string
+    }
+
     const [studentRes, submissionsRes, homeworksRes] = await Promise.all([
-      studentAPI.getStudent(Number(studentId)),
-      submissionAPI.getStudentSubmissions(Number(studentId)),
-      studentHomeworkAPI.getByStudentId(Number(studentId))
+      studentAPI.getStudent(Number(studentId.value)),
+      submissionAPI.getStudentSubmissions(Number(studentId.value)),
+      studentHomeworkAPI.getByStudentId(Number(studentId.value))
     ])
 
     student.value = studentRes.data
@@ -208,7 +223,11 @@ const fetchStudentDetail = async () => {
 }
 
 const goBack = () => {
-  router.push('/students')
+  if (isTeacher.value) {
+    router.push('/students')
+  } else {
+    router.push('/student/dashboard')
+  }
 }
 
 const navigateToTest = (testId: number | undefined) => {
@@ -259,7 +278,7 @@ const submitTodayFeedback = async () => {
 
   try {
     await dailyFeedbackAPI.updateInstructorFeedback(
-      Number(studentId),
+      Number(studentId.value),
       feedbackForm.value.lessonId,
       feedbackForm.value.content,
       feedbackForm.value.authorName
@@ -283,27 +302,24 @@ onMounted(() => {
   <div v-loading="loading">
     <!-- Header -->
     <el-card shadow="never" style="margin-bottom: 24px">
-      <div style="display: flex; justify-content: space-between; align-items: center">
-        <div>
-          <h1 style="margin: 0; font-size: 28px; font-weight: 600; color: #303133; display: flex; align-items: center; gap: 12px">
-            <el-icon size="32" color="#409eff">
-              <User />
-            </el-icon>
-            {{ student?.name || '학생 상세' }}
-          </h1>
-          <p style="margin: 8px 0 0; color: #909399">학생 ID: {{ studentId }}</p>
-        </div>
-        <div style="display: flex; gap: 12px">
-          <el-button type="primary" @click="openTodayFeedbackDialog" size="large">
+      <div>
+        <h1 style="margin: 0 0 16px 0; font-size: 28px; font-weight: 600; color: #303133; display: flex; align-items: center; gap: 12px">
+          <el-icon size="32" color="#409eff">
+            <User />
+          </el-icon>
+          <span>{{ student?.name || '학생 상세' }}</span>
+        </h1>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap">
+          <el-button v-if="isTeacher" type="primary" @click="openTodayFeedbackDialog">
             <el-icon style="margin-right: 8px"><Edit /></el-icon>
             수업 피드백 작성
           </el-button>
-          <el-button type="success" @click="router.push(`/students/${studentId}/feedback`)" size="large">
+          <el-button type="success" @click="router.push(isTeacher ? `/students/${studentId}/feedback` : '/student/daily-feedback')">
             <el-icon style="margin-right: 8px"><View /></el-icon>
             학습 피드백 보기
           </el-button>
-          <el-button @click="goBack" :icon="ArrowLeft" size="large">
-            목록으로
+          <el-button @click="goBack" :icon="ArrowLeft">
+            {{ isTeacher ? '목록으로' : '대시보드로' }}
           </el-button>
         </div>
       </div>
@@ -395,18 +411,20 @@ onMounted(() => {
 
           <!-- 꺾은선 그래프 -->
           <div v-if="chartPoints && chartPoints.length > 0" style="margin-top: 24px; padding: 20px; background: #fafafa; border-radius: 8px; cursor: pointer; transition: all 0.3s" @click="openChartModal">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
-              <div style="font-weight: 600; color: #303133">점수 추이</div>
-              <div style="display: flex; gap: 16px; font-size: 12px; align-items: center">
-                <el-button type="primary" size="small" :icon="ZoomIn" @click.stop="openChartModal">확대하여 보기</el-button>
-                <div style="display: flex; align-items: center; gap: 4px">
-                  <div style="width: 16px; height: 3px; background: #409eff; border-radius: 2px"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px">
+              <div style="font-weight: 600; color: #303133; font-size: 15px">점수 추이</div>
+              <div style="display: flex; gap: 12px; font-size: 11px; align-items: center; flex-wrap: nowrap">
+                <div style="display: flex; align-items: center; gap: 4px; white-space: nowrap">
+                  <div style="width: 14px; height: 2.5px; background: #409eff; border-radius: 2px"></div>
                   <span style="color: #606266">내 점수</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 4px">
-                  <div style="width: 16px; height: 3px; background: #67c23a; border-radius: 2px"></div>
+                <div style="display: flex; align-items: center; gap: 4px; white-space: nowrap">
+                  <div style="width: 14px; height: 2.5px; background: #67c23a; border-radius: 2px"></div>
                   <span style="color: #606266">학원 평균</span>
                 </div>
+                <el-button type="primary" size="small" :icon="ZoomIn" @click.stop="openChartModal" style="padding: 4px 8px; font-size: 11px">
+                  확대하여 보기
+                </el-button>
               </div>
             </div>
 

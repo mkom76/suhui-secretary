@@ -135,7 +135,7 @@ const handleTeacherLogin = async () => {
             >
               <template #title>
                 <div style="font-size: 12px">
-                  <strong>테스트 계정:</strong> ID: 1, PIN: 1234
+                  <strong>테스트 계정:</strong> ID: 1, PIN: 1111
                 </div>
               </template>
             </el-alert>

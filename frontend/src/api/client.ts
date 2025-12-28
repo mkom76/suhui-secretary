@@ -94,7 +94,8 @@ interface StudentHomework {
   studentName?: string;
   homeworkId?: number;
   homeworkTitle?: string;
-  completion?: number;
+  incorrectCount?: number; // 오답 개수
+  completion?: number; // 완성도 (계산된 값, 0-100)
   createdAt?: string;
   updatedAt?: string;
 }
@@ -192,8 +193,8 @@ export const homeworkAPI = {
 export const studentHomeworkAPI = {
   getByStudentId: (studentId: number) => client.get(`/student-homeworks/student/${studentId}`),
   getByHomeworkId: (homeworkId: number) => client.get(`/student-homeworks/homework/${homeworkId}`),
-  updateCompletion: (studentId: number, homeworkId: number, completion: number) =>
-    client.put(`/student-homeworks/student/${studentId}/homework/${homeworkId}`, { completion }),
+  updateIncorrectCount: (studentId: number, homeworkId: number, incorrectCount: number) =>
+    client.put(`/student-homeworks/student/${studentId}/homework/${homeworkId}`, { incorrectCount }),
   delete: (studentId: number, homeworkId: number) =>
     client.delete(`/student-homeworks/student/${studentId}/homework/${homeworkId}`),
 };

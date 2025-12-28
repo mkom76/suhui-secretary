@@ -12,13 +12,13 @@ const dialogVisible = ref(false)
 const editMode = ref(false)
 const currentHomework = ref<Homework>({ title: '', questionCount: 10, academyId: undefined, classId: undefined })
 
-// 학생 완성도 관리
+// 학생 오답 개수 관리
 const completionDialogVisible = ref(false)
 const selectedHomework = ref<Homework | null>(null)
 const studentHomeworks = ref<StudentHomework[]>([])
 const classStudents = ref<Student[]>([])
 const completionLoading = ref(false)
-const editingCompletions = ref<Record<number, number>>({})
+const editingIncorrectCounts = ref<Record<number, number>>({})
 
 const availableClasses = computed(() => {
   if (!currentHomework.value.academyId) return []
@@ -146,17 +146,17 @@ const handleDelete = async (homework: Homework) => {
   }
 }
 
-// 학생 완성도 관리
+// 학생 오답 개수 관리
 const openCompletionDialog = async (homework: Homework) => {
   if (!homework.id) return
 
   selectedHomework.value = homework
   completionDialogVisible.value = true
   completionLoading.value = true
-  editingCompletions.value = {}
+  editingIncorrectCounts.value = {}
 
   try {
-    // 해당 반의 모든 학생과 숙제 완성도 정보 가져오기
+    // 해당 반의 모든 학생과 숙제 정보 가져오기
     const [studentsRes, homeworksRes] = await Promise.all([
       studentAPI.getStudents(),
       studentHomeworkAPI.getByHomeworkId(homework.id)
@@ -167,10 +167,10 @@ const openCompletionDialog = async (homework: Homework) => {
     classStudents.value = allStudents.filter((s: Student) => s.classId === homework.classId)
     studentHomeworks.value = homeworksRes.data.content || homeworksRes.data
 
-    // 편집용 완성도 초기화
+    // 편집용 오답 개수 초기화
     classStudents.value.forEach(student => {
       const sh = studentHomeworks.value.find(sh => sh.studentId === student.id)
-      editingCompletions.value[student.id!] = sh?.completion || 0
+      editingIncorrectCounts.value[student.id!] = sh?.incorrectCount || 0
     })
   } catch (error) {
     ElMessage.error('학생 정보를 불러오는데 실패했습니다.')
@@ -184,24 +184,29 @@ const getStudentCompletion = (studentId: number) => {
   return sh?.completion || 0
 }
 
-const updateCompletion = async (studentId: number) => {
-  if (!selectedHomework.value?.id) return
+const getStudentIncorrectCount = (studentId: number) => {
+  const sh = studentHomeworks.value.find(sh => sh.studentId === studentId)
+  return sh?.incorrectCount || 0
+}
 
-  const completion = editingCompletions.value[studentId]
-  if (completion === undefined || completion < 0 || completion > 100) {
-    ElMessage.error('완성도는 0-100 사이의 값이어야 합니다.')
+const updateIncorrectCount = async (studentId: number) => {
+  if (!selectedHomework.value?.id || !selectedHomework.value.questionCount) return
+
+  const incorrectCount = editingIncorrectCounts.value[studentId]
+  if (incorrectCount === undefined || incorrectCount < 0 || incorrectCount > selectedHomework.value.questionCount) {
+    ElMessage.error(`오답 개수는 0-${selectedHomework.value.questionCount} 사이의 값이어야 합니다.`)
     return
   }
 
   try {
-    await studentHomeworkAPI.updateCompletion(studentId, selectedHomework.value.id, completion)
-    ElMessage.success('완성도가 업데이트되었습니다.')
+    await studentHomeworkAPI.updateIncorrectCount(studentId, selectedHomework.value.id, incorrectCount)
+    ElMessage.success('오답 개수가 업데이트되었습니다.')
 
     // 목록 새로고침
     const response = await studentHomeworkAPI.getByHomeworkId(selectedHomework.value.id)
     studentHomeworks.value = response.data.content || response.data
   } catch (error) {
-    ElMessage.error('완성도 업데이트에 실패했습니다.')
+    ElMessage.error('오답 개수 업데이트에 실패했습니다.')
   }
 }
 
@@ -332,7 +337,7 @@ onMounted(() => {
 
         <el-table-column label="관리" width="150" fixed="right">
           <template #default="{ row }">
-            <el-tooltip content="완성도 관리" placement="top">
+            <el-tooltip content="오답 개수 관리" placement="top">
               <el-button
                 size="small"
                 type="success"
@@ -461,11 +466,11 @@ onMounted(() => {
       </template>
     </el-dialog>
 
-    <!-- 학생 완성도 관리 Dialog -->
+    <!-- 학생 오답 개수 관리 Dialog -->
     <el-dialog
       v-model="completionDialogVisible"
-      :title="`${selectedHomework?.title} - 학생 완성도 관리`"
-      width="700px"
+      :title="`${selectedHomework?.title} - 학생 오답 개수 관리 (총 ${selectedHomework?.questionCount}문제)`"
+      width="800px"
     >
       <el-table
         :data="classStudents"
@@ -473,7 +478,14 @@ onMounted(() => {
         style="width: 100%"
       >
         <el-table-column prop="name" label="학생명" width="150" />
-        <el-table-column label="현재 완성도" width="150" align="center">
+        <el-table-column label="현재 오답 개수" width="130" align="center">
+          <template #default="{ row }">
+            <el-tag type="info">
+              {{ getStudentIncorrectCount(row.id) }}개
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="현재 완성도" width="130" align="center">
           <template #default="{ row }">
             <el-tag
               :type="getStudentCompletion(row.id) >= 80 ? 'success' : getStudentCompletion(row.id) >= 60 ? 'warning' : 'danger'"
@@ -482,18 +494,18 @@ onMounted(() => {
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="완성도 수정" width="200">
+        <el-table-column label="오답 개수 수정" width="180">
           <template #default="{ row }">
             <el-input-number
-              v-model="editingCompletions[row.id]"
+              v-model="editingIncorrectCounts[row.id]"
               :min="0"
-              :max="100"
-              :step="5"
+              :max="selectedHomework?.questionCount || 100"
+              :step="1"
               controls-position="right"
               size="small"
               style="width: 100%"
             >
-              <template #suffix>%</template>
+              <template #suffix>개</template>
             </el-input-number>
           </template>
         </el-table-column>
@@ -502,8 +514,8 @@ onMounted(() => {
             <el-button
               type="primary"
               size="small"
-              @click="updateCompletion(row.id)"
-              :disabled="editingCompletions[row.id] === getStudentCompletion(row.id)"
+              @click="updateIncorrectCount(row.id)"
+              :disabled="editingIncorrectCounts[row.id] === getStudentIncorrectCount(row.id)"
             >
               수정
             </el-button>

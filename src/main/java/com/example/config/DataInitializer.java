@@ -572,61 +572,61 @@ public class DataInitializer {
             StudentHomework sh1 = new StudentHomework();
             sh1.setStudent(student1);
             sh1.setHomework(homework1);
-            sh1.setCompletion(85);
+            sh1.setIncorrectCount(5); // 30문제 중 5개 오답 (83% 정답률)
             studentHomeworkRepository.save(sh1);
 
             StudentHomework sh2 = new StudentHomework();
             sh2.setStudent(student1);
             sh2.setHomework(homework6);
-            sh2.setCompletion(70);
+            sh2.setIncorrectCount(14); // 45문제 중 14개 오답 (69% 정답률)
             studentHomeworkRepository.save(sh2);
 
             StudentHomework sh3 = new StudentHomework();
             sh3.setStudent(student2);
             sh3.setHomework(homework1);
-            sh3.setCompletion(95);
+            sh3.setIncorrectCount(2); // 30문제 중 2개 오답 (93% 정답률)
             studentHomeworkRepository.save(sh3);
 
             StudentHomework sh4 = new StudentHomework();
             sh4.setStudent(student3);
             sh4.setHomework(homework2);
-            sh4.setCompletion(90);
+            sh4.setIncorrectCount(3); // 25문제 중 3개 오답 (88% 정답률)
             studentHomeworkRepository.save(sh4);
 
             StudentHomework sh5 = new StudentHomework();
             sh5.setStudent(student4);
             sh5.setHomework(homework3);
-            sh5.setCompletion(75);
+            sh5.setIncorrectCount(10); // 40문제 중 10개 오답 (75% 정답률)
             studentHomeworkRepository.save(sh5);
 
             StudentHomework sh6 = new StudentHomework();
             sh6.setStudent(student5);
             sh6.setHomework(homework3);
-            sh6.setCompletion(88);
+            sh6.setIncorrectCount(5); // 40문제 중 5개 오답 (88% 정답률)
             studentHomeworkRepository.save(sh6);
 
             StudentHomework sh7 = new StudentHomework();
             sh7.setStudent(student6);
             sh7.setHomework(homework4);
-            sh7.setCompletion(92);
+            sh7.setIncorrectCount(3); // 35문제 중 3개 오답 (91% 정답률)
             studentHomeworkRepository.save(sh7);
 
             StudentHomework sh8 = new StudentHomework();
             sh8.setStudent(student7);
             sh8.setHomework(homework5);
-            sh8.setCompletion(80);
+            sh8.setIncorrectCount(10); // 50문제 중 10개 오답 (80% 정답률)
             studentHomeworkRepository.save(sh8);
 
             StudentHomework sh9 = new StudentHomework();
             sh9.setStudent(student8);
             sh9.setHomework(homework5);
-            sh9.setCompletion(98);
+            sh9.setIncorrectCount(1); // 50문제 중 1개 오답 (98% 정답률)
             studentHomeworkRepository.save(sh9);
 
             StudentHomework sh10 = new StudentHomework();
             sh10.setStudent(student9);
             sh10.setHomework(homework7);
-            sh10.setCompletion(65);
+            sh10.setIncorrectCount(21); // 60문제 중 21개 오답 (65% 정답률)
             studentHomeworkRepository.save(sh10);
 
             log.info("Created {} student homework records", 10);
