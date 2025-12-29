@@ -42,6 +42,8 @@ public class DailyFeedbackDto {
         private Long testId;
         private String testTitle;
         private Integer studentScore;
+        private Double classAverage;
+        private Integer rank;
         private List<Integer> incorrectQuestions;
         private List<QuestionAccuracy> questionAccuracyRates;
     }

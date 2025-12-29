@@ -138,10 +138,35 @@ public class DailyFeedbackService {
                         .build())
                 .collect(Collectors.toList());
 
+        // Calculate class average and rank
+        List<StudentSubmission> allSubmissions = studentSubmissionRepository.findByTestId(test.getId());
+
+        // Class average
+        double classAverage = allSubmissions.stream()
+                .mapToInt(StudentSubmission::getTotalScore)
+                .average()
+                .orElse(0.0);
+
+        // Calculate rank
+        List<Integer> scores = allSubmissions.stream()
+                .map(StudentSubmission::getTotalScore)
+                .sorted((a, b) -> b.compareTo(a)) // Descending order
+                .collect(Collectors.toList());
+
+        int rank = 1;
+        for (int i = 0; i < scores.size(); i++) {
+            if (scores.get(i).equals(sub.getTotalScore())) {
+                rank = i + 1;
+                break;
+            }
+        }
+
         return DailyFeedbackDto.TestFeedback.builder()
                 .testId(test.getId())
                 .testTitle(test.getTitle())
                 .studentScore(sub.getTotalScore())
+                .classAverage(classAverage)
+                .rank(rank)
                 .incorrectQuestions(incorrectQuestions)
                 .questionAccuracyRates(rates)
                 .build();

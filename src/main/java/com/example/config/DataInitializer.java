@@ -490,26 +490,7 @@ public class DataInitializer {
                 studentSubmissionDetailRepository.save(detail);
             }
 
-            // student1의 test3 제출 (70점)
-            StudentSubmission submission9 = new StudentSubmission();
-            submission9.setStudent(student1);
-            submission9.setTest(test3);
-            submission9.setTotalScore(70);
-            submission9.setSubmittedAt(LocalDateTime.now().minusDays(24));
-            submission9 = studentSubmissionRepository.save(submission9);
-
-            for (int i = 0; i < test3Questions.size(); i++) {
-                StudentSubmissionDetail detail = new StudentSubmissionDetail();
-                detail.setSubmission(submission9);
-                detail.setQuestion(test3Questions.get(i));
-                String correctAnswer = test3Questions.get(i).getAnswer();
-                String studentAnswer = (i < 14) ? correctAnswer : "5";
-                detail.setStudentAnswer(studentAnswer);
-                detail.setIsCorrect(correctAnswer.equals(studentAnswer));
-                studentSubmissionDetailRepository.save(detail);
-            }
-
-            log.info("Created {} student submissions with details", 9);
+            log.info("Created {} student submissions with details", 8);
 
             // 6. 숙제 데이터 생성 (Lesson과 연결) - 모두 수학 숙제
             Homework homework1 = new Homework();
@@ -657,7 +638,7 @@ public class DataInitializer {
             log.info("- Lessons: 8");
             log.info("- Tests: 5 (모두 수학 시험)");
             log.info("- Test Questions: 82");
-            log.info("- Student Submissions: 9");
+            log.info("- Student Submissions: 8");
             log.info("- Homeworks: 7 (모두 수학 숙제)");
             log.info("- Student Homework Records: 10");
             log.info("===================================================");

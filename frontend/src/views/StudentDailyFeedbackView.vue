@@ -295,6 +295,20 @@ onMounted(() => {
           <h3 style="margin: 0 0 12px; font-size: 16px; color: #303133">
             {{ feedback.todayTest.testTitle }}
           </h3>
+          <div style="display: flex; gap: 16px; align-items: center">
+            <div style="padding: 8px 16px; background: #f0f9ff; border-radius: 6px; border-left: 3px solid #409eff">
+              <span style="color: #909399; font-size: 13px">반 평균</span>
+              <span style="margin-left: 8px; font-weight: 600; color: #303133; font-size: 15px">
+                {{ Math.round(feedback.todayTest.classAverage) }}점
+              </span>
+            </div>
+            <div style="padding: 8px 16px; background: #fef0f0; border-radius: 6px; border-left: 3px solid #f56c6c">
+              <span style="color: #909399; font-size: 13px">반 등수</span>
+              <span style="margin-left: 8px; font-weight: 600; color: #303133; font-size: 15px">
+                {{ feedback.todayTest.rank }}등
+              </span>
+            </div>
+          </div>
         </div>
 
         <div v-if="incorrectQuestionsWithRate.length > 0">

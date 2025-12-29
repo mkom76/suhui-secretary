@@ -11,6 +11,7 @@ const currentUser = ref<AuthResponse>({})
 const studentInfo = ref<Student | null>(null)
 const availableTests = ref<Test[]>([])
 const mySubmissions = ref<Submission[]>([])
+const pastTestsDialogVisible = ref(false)
 
 const fetchCurrentUser = async () => {
   try {
@@ -65,6 +66,16 @@ const getSubmissionForTest = (testId: number) => {
 
 const handleTakeTest = (testId: number) => {
   router.push(`/student/tests/${testId}`)
+}
+
+const showPastTestsDialog = () => {
+  pastTestsDialogVisible.value = true
+}
+
+// 미응시한 시험 개수
+const untakenTestsCount = () => {
+  const submittedTestIds = new Set(mySubmissions.value.map(s => s.testId))
+  return availableTests.value.filter(t => !submittedTestIds.has(t.id)).length
 }
 
 onMounted(() => {
@@ -137,23 +148,23 @@ onMounted(() => {
                 <Document />
               </el-icon>
             </div>
-            <h3 style="margin: 0; font-size: 18px; color: #303133">전체 시험</h3>
+            <h3 style="margin: 0; font-size: 18px; color: #303133">미응시한 시험</h3>
             <p style="margin: 8px 0; color: #606266; font-size: 32px; font-weight: 700">
-              {{ availableTests.length }}
+              {{ untakenTestsCount() }}
             </p>
           </div>
         </el-card>
       </el-col>
 
       <el-col :span="8">
-        <el-card shadow="hover">
+        <el-card shadow="hover" style="cursor: pointer" @click="showPastTestsDialog">
           <div style="text-align: center">
             <div style="display: inline-block; padding: 16px; background: #e6a23c; border-radius: 16px; margin-bottom: 16px">
               <el-icon size="48" color="white">
                 <Check />
               </el-icon>
             </div>
-            <h3 style="margin: 0; font-size: 18px; color: #303133">제출한 시험</h3>
+            <h3 style="margin: 0; font-size: 18px; color: #303133">지난 시험</h3>
             <p style="margin: 8px 0; color: #606266; font-size: 32px; font-weight: 700">
               {{ mySubmissions.length }}
             </p>
@@ -231,5 +242,59 @@ onMounted(() => {
         style="padding: 60px 0"
       />
     </el-card>
+
+    <!-- Past Tests Dialog -->
+    <el-dialog v-model="pastTestsDialogVisible" title="지난 시험 기록" width="800px">
+      <el-table :data="mySubmissions" style="width: 100%" stripe>
+        <el-table-column label="시험 제목" min-width="200">
+          <template #default="{ row }">
+            {{ row.testTitle || row.test?.title || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="제출 날짜" width="180">
+          <template #default="{ row }">
+            {{ row.submittedAt ? new Date(row.submittedAt).toLocaleDateString('ko-KR', {
+              year: 'numeric', month: 'long', day: 'numeric'
+            }) : '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="내 점수" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag
+              :type="row.totalScore >= 90 ? 'success' : row.totalScore >= 70 ? 'warning' : 'danger'"
+              size="large"
+            >
+              {{ row.totalScore }}점
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="반 평균" width="100" align="center">
+          <template #default="{ row }">
+            <span v-if="row.classAverage !== null && row.classAverage !== undefined">
+              {{ Math.round(row.classAverage) }}점
+            </span>
+            <span v-else style="color: #909399">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="반 등수" width="100" align="center">
+          <template #default="{ row }">
+            <span v-if="row.rank !== null && row.rank !== undefined">
+              {{ row.rank }}등
+            </span>
+            <span v-else style="color: #909399">-</span>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-empty
+        v-if="mySubmissions.length === 0"
+        description="제출한 시험이 없습니다"
+        :image-size="100"
+      />
+
+      <template #footer>
+        <el-button @click="pastTestsDialogVisible = false">닫기</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>

@@ -69,6 +69,8 @@ interface Submission {
   testId?: number;
   testTitle?: string;
   totalScore: number;
+  classAverage?: number;
+  rank?: number;
   submittedAt?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -283,6 +285,8 @@ export interface TestFeedback {
   testId: number;
   testTitle: string;
   studentScore: number;
+  classAverage: number;
+  rank: number;
   incorrectQuestions: number[];
   questionAccuracyRates: QuestionAccuracy[];
 }

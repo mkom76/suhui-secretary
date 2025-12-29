@@ -111,8 +111,39 @@ public class SubmissionService {
     
     public List<StudentSubmissionDto> getStudentSubmissions(Long studentId) {
         List<StudentSubmission> submissions = submissionRepository.findByStudentId(studentId);
+
         return submissions.stream()
-                .map(StudentSubmissionDto::from)
+                .map(submission -> {
+                    StudentSubmissionDto dto = StudentSubmissionDto.from(submission);
+
+                    // Calculate class average and rank for this test
+                    List<StudentSubmission> allSubmissions = submissionRepository.findByTestId(submission.getTest().getId());
+
+                    // Class average
+                    double classAverage = allSubmissions.stream()
+                            .mapToInt(StudentSubmission::getTotalScore)
+                            .average()
+                            .orElse(0.0);
+
+                    // Calculate rank
+                    List<Integer> scores = allSubmissions.stream()
+                            .map(StudentSubmission::getTotalScore)
+                            .sorted((a, b) -> b.compareTo(a)) // Descending order
+                            .collect(Collectors.toList());
+
+                    int rank = 1;
+                    for (int i = 0; i < scores.size(); i++) {
+                        if (scores.get(i).equals(submission.getTotalScore())) {
+                            rank = i + 1;
+                            break;
+                        }
+                    }
+
+                    dto.setClassAverage(classAverage);
+                    dto.setRank(rank);
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
