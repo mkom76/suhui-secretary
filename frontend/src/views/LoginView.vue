@@ -98,7 +98,7 @@ const handleTeacherLogin = async () => {
           <el-tab-pane label="학생 로그인" name="student">
             <el-form :model="studentForm" label-width="100px" style="margin-top: 24px">
               <el-form-item label="학생 ID">
-                <el-input-number
+                <el-input
                   v-model="studentForm.studentId"
                   :controls="false"
                   placeholder="학생 ID를 입력하세요"
