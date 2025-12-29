@@ -76,4 +76,11 @@ public class TestController {
                 .body(testService.addQuestion(id, dto));
     }
 
+    @GetMapping("/unattached")
+    public ResponseEntity<List<TestDto>> getUnattachedTests(
+            @RequestParam Long academyId,
+            @RequestParam Long classId) {
+        return ResponseEntity.ok(testService.getUnattachedTests(academyId, classId));
+    }
+
 }

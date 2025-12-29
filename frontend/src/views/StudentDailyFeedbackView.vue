@@ -172,7 +172,9 @@ onMounted(() => {
             <el-option
               v-for="lesson in lessons"
               :key="lesson.id"
-              :label="`${lesson.lessonDate} - ${lesson.testTitle || lesson.homeworkTitle || '수업'}`"
+              :label="new Date(lesson.lessonDate).toLocaleDateString('ko-KR', {
+                year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+              })"
               :value="lesson.id"
             />
           </el-select>

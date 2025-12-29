@@ -42,17 +42,11 @@ public class TestService {
         AcademyClass academyClass = academyClassRepository.findById(dto.getClassId())
                 .orElseThrow(() -> new RuntimeException("Class not found"));
 
-        // Auto-create lesson for today
-        Lesson lesson = lessonService.getOrCreateLesson(
-                dto.getAcademyId(),
-                dto.getClassId(),
-                java.time.LocalDate.now());
-
         Test test = Test.builder()
                 .title(dto.getTitle())
                 .academy(academy)
                 .academyClass(academyClass)
-                .lesson(lesson)
+                .lesson(null)  // Lesson will be attached later via LessonService
                 .build();
 
         test = testRepository.save(test);
@@ -203,5 +197,12 @@ public class TestService {
 
     public void deleteQuestion(Long questionId) {
         testQuestionRepository.deleteById(questionId);
+    }
+
+    public List<TestDto> getUnattachedTests(Long academyId, Long classId) {
+        return testRepository.findUnattachedByAcademyIdAndClassId(academyId, classId)
+                .stream()
+                .map(TestDto::from)
+                .collect(Collectors.toList());
     }
 }

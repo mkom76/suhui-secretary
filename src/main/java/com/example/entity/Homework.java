@@ -45,7 +45,7 @@ public class Homework {
     private AcademyClass academyClass;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lesson_id", nullable = false)
+    @JoinColumn(name = "lesson_id")
     private Lesson lesson;
 
     @CreatedDate

@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/homeworks")
 @RequiredArgsConstructor
@@ -42,5 +44,12 @@ public class HomeworkController {
     public ResponseEntity<Void> deleteHomework(@PathVariable Long id) {
         homeworkService.deleteHomework(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/unattached")
+    public ResponseEntity<List<HomeworkDto>> getUnattachedHomeworks(
+            @RequestParam Long academyId,
+            @RequestParam Long classId) {
+        return ResponseEntity.ok(homeworkService.getUnattachedHomeworks(academyId, classId));
     }
 }

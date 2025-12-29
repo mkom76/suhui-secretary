@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { academyClassAPI, academyAPI, type AcademyClass, type Academy } from '../api/client'
 
+const router = useRouter()
 const loading = ref(false)
 const academyClasses = ref<AcademyClass[]>([])
 const academies = ref<Academy[]>([])
@@ -97,6 +99,10 @@ const handleDelete = async (cls: AcademyClass) => {
   }
 }
 
+const navigateToLessons = (cls: AcademyClass) => {
+  router.push(`/lessons?academyId=${cls.academyId}&classId=${cls.id}`)
+}
+
 onMounted(() => {
   fetchAcademyClasses()
   fetchAcademies()
@@ -146,8 +152,12 @@ onMounted(() => {
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="academyName" label="학원" width="150" />
         <el-table-column prop="name" label="반명" />
-        <el-table-column label="작업" width="150" align="center">
+        <el-table-column label="작업" width="250" align="center">
           <template #default="{ row }">
+            <el-button size="small" type="info" @click="navigateToLessons(row)">
+              <el-icon style="margin-right: 4px"><Calendar /></el-icon>
+              수업 보기
+            </el-button>
             <el-button size="small" @click="openEditDialog(row)">수정</el-button>
             <el-button size="small" type="danger" @click="handleDelete(row)">삭제</el-button>
           </template>

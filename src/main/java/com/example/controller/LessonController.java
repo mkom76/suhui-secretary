@@ -36,4 +36,34 @@ public class LessonController {
         lessonService.deleteLesson(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping
+    public ResponseEntity<LessonDto> createLesson(@RequestBody LessonDto dto) {
+        return ResponseEntity.ok(lessonService.createLesson(dto.getAcademyId(), dto.getClassId(), dto.getLessonDate()));
+    }
+
+    @PutMapping("/{lessonId}/test/{testId}")
+    public ResponseEntity<LessonDto> attachTest(@PathVariable Long lessonId, @PathVariable Long testId) {
+        return ResponseEntity.ok(lessonService.attachTest(lessonId, testId));
+    }
+
+    @PutMapping("/{lessonId}/homework/{homeworkId}")
+    public ResponseEntity<LessonDto> attachHomework(@PathVariable Long lessonId, @PathVariable Long homeworkId) {
+        return ResponseEntity.ok(lessonService.attachHomework(lessonId, homeworkId));
+    }
+
+    @DeleteMapping("/{lessonId}/test")
+    public ResponseEntity<LessonDto> detachTest(@PathVariable Long lessonId) {
+        return ResponseEntity.ok(lessonService.detachTest(lessonId));
+    }
+
+    @DeleteMapping("/{lessonId}/homework")
+    public ResponseEntity<LessonDto> detachHomework(@PathVariable Long lessonId) {
+        return ResponseEntity.ok(lessonService.detachHomework(lessonId));
+    }
+
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<List<LessonDto>> getLessonsByStudent(@PathVariable Long studentId) {
+        return ResponseEntity.ok(lessonService.getLessonsByStudent(studentId));
+    }
 }

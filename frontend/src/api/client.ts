@@ -166,9 +166,11 @@ export const testAPI = {
   deleteTest: (id: number) => client.delete(`/tests/${id}`),
   getTestStats: (id: number) => client.get(`/tests/${id}/stats`),
   getTestQuestions: (id: number) => client.get(`/tests/${id}/questions`),
-  addQuestion: (testId: number, data: Omit<Question, 'id'>) => 
+  addQuestion: (testId: number, data: Omit<Question, 'id'>) =>
     client.post(`/tests/${testId}/questions`, data),
   deleteQuestion: (id: number) => client.delete(`/questions/${id}`),
+  getUnattachedTests: (academyId: number, classId: number) =>
+    client.get('/tests/unattached', { params: { academyId, classId } }),
 };
 
 // Submissions API
@@ -187,6 +189,8 @@ export const homeworkAPI = {
   createHomework: (data: Homework) => client.post('/homeworks', data),
   updateHomework: (id: number, data: Homework) => client.put(`/homeworks/${id}`, data),
   deleteHomework: (id: number) => client.delete(`/homeworks/${id}`),
+  getUnattachedHomeworks: (academyId: number, classId: number) =>
+    client.get('/homeworks/unattached', { params: { academyId, classId } }),
 };
 
 // Student Homeworks API
@@ -204,6 +208,12 @@ export const lessonAPI = {
   getLessons: (params?: any) => client.get<{ content: Lesson[] }>('/lessons', { params }),
   getLesson: (id: number) => client.get<Lesson>(`/lessons/${id}`),
   getLessonsByClass: (classId: number) => client.get<Lesson[]>(`/lessons/class/${classId}`),
+  getLessonsByStudent: (studentId: number) => client.get<Lesson[]>(`/lessons/student/${studentId}`),
+  createLesson: (data: { academyId: number; classId: number; lessonDate: string }) => client.post('/lessons', data),
+  attachTest: (lessonId: number, testId: number) => client.put(`/lessons/${lessonId}/test/${testId}`),
+  attachHomework: (lessonId: number, homeworkId: number) => client.put(`/lessons/${lessonId}/homework/${homeworkId}`),
+  detachTest: (lessonId: number) => client.delete(`/lessons/${lessonId}/test`),
+  detachHomework: (lessonId: number) => client.delete(`/lessons/${lessonId}/homework`),
   deleteLesson: (id: number) => client.delete(`/lessons/${id}`),
 };
 

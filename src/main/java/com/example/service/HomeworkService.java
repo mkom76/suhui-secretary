@@ -39,13 +39,6 @@ public class HomeworkService {
         AcademyClass academyClass = academyClassRepository.findById(dto.getClassId())
                 .orElseThrow(() -> new RuntimeException("Class not found"));
 
-        // Auto-create lesson for today (or use dueDate if provided)
-        java.time.LocalDate lessonDate = dto.getDueDate() != null ? dto.getDueDate() : java.time.LocalDate.now();
-        Lesson lesson = lessonService.getOrCreateLesson(
-                dto.getAcademyId(),
-                dto.getClassId(),
-                lessonDate);
-
         Homework homework = Homework.builder()
                 .title(dto.getTitle())
                 .questionCount(dto.getQuestionCount())
@@ -53,7 +46,7 @@ public class HomeworkService {
                 .dueDate(dto.getDueDate())
                 .academy(academy)
                 .academyClass(academyClass)
-                .lesson(lesson)
+                .lesson(null)  // Lesson will be attached later via LessonService
                 .build();
 
         homework = homeworkRepository.save(homework);
@@ -87,5 +80,12 @@ public class HomeworkService {
 
     public void deleteHomework(Long id) {
         homeworkRepository.deleteById(id);
+    }
+
+    public java.util.List<HomeworkDto> getUnattachedHomeworks(Long academyId, Long classId) {
+        return homeworkRepository.findUnattachedByAcademyIdAndClassId(academyId, classId)
+                .stream()
+                .map(HomeworkDto::from)
+                .collect(java.util.stream.Collectors.toList());
     }
 }

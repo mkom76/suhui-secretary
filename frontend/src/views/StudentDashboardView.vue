@@ -2,8 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { authAPI, testAPI, submissionAPI, studentAPI } from '@/api/client'
-import type { AuthResponse, Test, Submission, Student } from '@/api/client'
+import { authAPI, lessonAPI, submissionAPI, studentAPI } from '@/api/client'
+import type { AuthResponse, Test, Submission, Student, Lesson } from '@/api/client'
 
 const router = useRouter()
 const loading = ref(false)
@@ -22,11 +22,21 @@ const fetchCurrentUser = async () => {
       const studentResponse = await studentAPI.getStudent(currentUser.value.userId)
       studentInfo.value = studentResponse.data
 
-      // Fetch available tests for student's class
-      if (studentInfo.value.classId) {
-        const testsResponse = await testAPI.getTests({ classId: studentInfo.value.classId })
-        availableTests.value = testsResponse.data.content || []
-      }
+      // Fetch lessons for student's class (lesson-based filtering)
+      const lessonsResponse = await lessonAPI.getLessonsByStudent(currentUser.value.userId)
+      const lessons: Lesson[] = lessonsResponse.data
+
+      // Extract tests from lessons that have tests attached
+      availableTests.value = lessons
+        .filter(lesson => lesson.testId && lesson.testTitle)
+        .map(lesson => ({
+          id: lesson.testId,
+          title: lesson.testTitle,
+          className: lesson.className,
+          academyName: lesson.academyName,
+          // Add lesson date info for display
+          lessonDate: lesson.lessonDate
+        } as Test))
 
       // Fetch student's submissions
       const submissionsResponse = await submissionAPI.getStudentSubmissions(currentUser.value.userId)
@@ -166,6 +176,13 @@ onMounted(() => {
         v-loading="loading"
       >
         <el-table-column prop="title" label="시험 제목" min-width="200" />
+        <el-table-column label="수업 날짜" width="150">
+          <template #default="{ row }">
+            {{ row.lessonDate ? new Date(row.lessonDate).toLocaleDateString('ko-KR', {
+              year: 'numeric', month: 'long', day: 'numeric'
+            }) : '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="questionCount" label="문제 수" width="120">
           <template #default="{ row }">
             {{ row.questionCount || '-' }}
