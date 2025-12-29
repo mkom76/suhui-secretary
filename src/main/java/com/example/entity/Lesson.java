@@ -47,6 +47,12 @@ public class Lesson {
     @Builder.Default
     private List<StudentLesson> studentLessons = new ArrayList<>();
 
+    @Column(name = "common_feedback", columnDefinition = "TEXT")
+    private String commonFeedback; // 수업 공통 피드백
+
+    @Column(name = "announcement", columnDefinition = "TEXT")
+    private String announcement; // 공지사항
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

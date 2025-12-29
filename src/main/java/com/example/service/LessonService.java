@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.dto.LessonDto;
+import com.example.dto.LessonStudentStatsDto;
 import com.example.entity.*;
 import com.example.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +24,8 @@ public class LessonService {
     private final TestRepository testRepository;
     private final HomeworkRepository homeworkRepository;
     private final StudentRepository studentRepository;
+    private final StudentSubmissionRepository studentSubmissionRepository;
+    private final StudentHomeworkRepository studentHomeworkRepository;
 
     /**
      * Get or create lesson for a specific date/class
@@ -200,5 +203,125 @@ public class LessonService {
                 .stream()
                 .map(LessonDto::from)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Update lesson feedback and announcement
+     */
+    public LessonDto updateLessonContent(Long lessonId, String commonFeedback, String announcement) {
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+
+        lesson.setCommonFeedback(commonFeedback);
+        lesson.setAnnouncement(announcement);
+
+        lesson = lessonRepository.save(lesson);
+        return LessonDto.from(lesson);
+    }
+
+    /**
+     * Get student statistics for a lesson (test scores and homework completion)
+     */
+    @Transactional(readOnly = true)
+    public LessonStudentStatsDto getLessonStudentStats(Long lessonId) {
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+
+        // Get all students in this class
+        List<Student> students = studentRepository.findAll().stream()
+                .filter(s -> s.getAcademyClass() != null && s.getAcademyClass().getId().equals(lesson.getAcademyClass().getId()))
+                .collect(Collectors.toList());
+
+        LessonStudentStatsDto stats = new LessonStudentStatsDto();
+
+        // Test statistics
+        if (lesson.getTest() != null) {
+            List<LessonStudentStatsDto.StudentTestScore> testScores = new ArrayList<>();
+            List<StudentSubmission> submissions = studentSubmissionRepository.findByTestId(lesson.getTest().getId());
+            Map<Long, StudentSubmission> submissionMap = submissions.stream()
+                    .collect(Collectors.toMap(s -> s.getStudent().getId(), s -> s));
+
+            for (Student student : students) {
+                StudentSubmission submission = submissionMap.get(student.getId());
+                testScores.add(LessonStudentStatsDto.StudentTestScore.builder()
+                        .studentId(student.getId())
+                        .studentName(student.getName())
+                        .score(submission != null ? submission.getTotalScore() : null)
+                        .submitted(submission != null)
+                        .build());
+            }
+
+            // Sort by score (descending), null scores at the end
+            testScores.sort((a, b) -> {
+                if (a.getScore() == null) return 1;
+                if (b.getScore() == null) return -1;
+                return b.getScore().compareTo(a.getScore());
+            });
+
+            // Assign ranks
+            int rank = 1;
+            Integer prevScore = null;
+            int sameRankCount = 0;
+            for (LessonStudentStatsDto.StudentTestScore score : testScores) {
+                if (score.getScore() != null) {
+                    if (prevScore != null && prevScore.equals(score.getScore())) {
+                        sameRankCount++;
+                    } else {
+                        rank += sameRankCount;
+                        sameRankCount = 1;
+                    }
+                    score.setRank(rank);
+                    prevScore = score.getScore();
+                }
+            }
+
+            // Calculate average
+            double average = submissions.stream()
+                    .mapToInt(StudentSubmission::getTotalScore)
+                    .average()
+                    .orElse(0.0);
+
+            stats.setTestScores(testScores);
+            stats.setTestAverage(average);
+        }
+
+        // Homework statistics
+        if (lesson.getHomework() != null) {
+            List<LessonStudentStatsDto.StudentHomeworkCompletion> homeworkCompletions = new ArrayList<>();
+            List<StudentHomework> studentHomeworks = studentHomeworkRepository
+                    .findByHomeworkId(lesson.getHomework().getId());
+            Map<Long, StudentHomework> homeworkMap = studentHomeworks.stream()
+                    .collect(Collectors.toMap(sh -> sh.getStudent().getId(), sh -> sh));
+
+            for (Student student : students) {
+                StudentHomework studentHomework = homeworkMap.get(student.getId());
+                homeworkCompletions.add(LessonStudentStatsDto.StudentHomeworkCompletion.builder()
+                        .studentId(student.getId())
+                        .studentName(student.getName())
+                        .incorrectCount(studentHomework != null ? studentHomework.getIncorrectCount() : null)
+                        .completion(studentHomework != null ? studentHomework.getCompletion() : null)
+                        .completed(studentHomework != null)
+                        .totalQuestions(lesson.getHomework().getQuestionCount())
+                        .build());
+            }
+
+            // Sort by completion (descending), null completion at the end
+            homeworkCompletions.sort((a, b) -> {
+                if (a.getCompletion() == null) return 1;
+                if (b.getCompletion() == null) return -1;
+                return b.getCompletion().compareTo(a.getCompletion());
+            });
+
+            // Calculate average completion
+            double average = studentHomeworks.stream()
+                    .mapToInt(StudentHomework::getCompletion)
+                    .average()
+                    .orElse(0.0);
+
+            stats.setHomeworkCompletions(homeworkCompletions);
+            stats.setHomeworkAverage(average);
+        }
+
+        return stats;
     }
 }

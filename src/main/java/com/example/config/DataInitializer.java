@@ -179,48 +179,64 @@ public class DataInitializer {
             lesson1.setLessonDate(LocalDate.now().minusDays(30));
             lesson1.setAcademy(academy1);
             lesson1.setAcademyClass(class1);
+            lesson1.setCommonFeedback("오늘 수업에서는 1차 방정식과 2차 방정식의 기본 개념을 다루었습니다. 대부분의 학생들이 기본 개념은 잘 이해하고 있으나, 복잡한 문제에서 실수가 많았습니다. 다음 수업까지 복습 문제를 꼭 풀어오시기 바랍니다.");
+            lesson1.setAnnouncement("다음 주 월요일은 임시 공휴일로 수업이 없습니다. 목요일에 만나요!");
             lesson1 = lessonRepository.save(lesson1);
 
             Lesson lesson2 = new Lesson();
             lesson2.setLessonDate(LocalDate.now().minusDays(28));
             lesson2.setAcademy(academy1);
             lesson2.setAcademyClass(class2);
+            lesson2.setCommonFeedback("함수의 극한과 연속성에 대해 학습했습니다. 극한값 계산 시 L'Hospital 정리를 적절히 활용하는 연습이 필요합니다. 전반적으로 수업 참여도가 높았고, 질문도 활발했습니다.");
+            lesson2.setAnnouncement("이번 주 토요일 오후 2시에 특강이 있습니다. 미적분 심화 내용을 다룰 예정이니 참석 부탁드립니다.");
             lesson2 = lessonRepository.save(lesson2);
 
             Lesson lesson3 = new Lesson();
             lesson3.setLessonDate(LocalDate.now().minusDays(25));
             lesson3.setAcademy(academy1);
             lesson3.setAcademyClass(class3);
+            lesson3.setCommonFeedback("미분의 기본 개념과 공식을 배웠습니다. 미분 계수의 의미를 정확히 이해하는 것이 중요합니다. 일부 학생들이 곱의 미분법과 몫의 미분법을 헷갈려 했으니, 다음 시간에 추가 설명하겠습니다.");
+            lesson3.setAnnouncement("중간고사가 2주 후로 다가왔습니다. 시험 범위는 1단원부터 3단원까지입니다.");
             lesson3 = lessonRepository.save(lesson3);
 
             Lesson lesson4 = new Lesson();
             lesson4.setLessonDate(LocalDate.now().minusDays(20));
             lesson4.setAcademy(academy2);
             lesson4.setAcademyClass(class4);
+            lesson4.setCommonFeedback("정적분의 활용 문제를 풀었습니다. 넓이와 부피 계산 문제에서 적분 구간 설정이 중요합니다. 그래프를 그려서 문제를 시각화하는 습관을 들이세요. 대부분 학생들이 개념은 이해했으나 계산 실수가 있었습니다.");
+            lesson4.setAnnouncement("다음 주부터 모의고사 대비 문제 풀이 수업을 진행합니다. 추가 프린트물을 나눠드릴 예정입니다.");
             lesson4 = lessonRepository.save(lesson4);
 
             Lesson lesson5 = new Lesson();
             lesson5.setLessonDate(LocalDate.now().minusDays(15));
             lesson5.setAcademy(academy2);
             lesson5.setAcademyClass(class5);
+            lesson5.setCommonFeedback("확률분포와 통계적 추정 문제를 다루었습니다. 정규분포와 이항분포의 차이를 명확히 이해해야 합니다. 수능에서 자주 출제되는 유형이니 반복 학습이 필요합니다. 전체적으로 수업 집중도가 좋았습니다.");
+            lesson5.setAnnouncement("수능이 한 달 앞으로 다가왔습니다. 마지막까지 최선을 다해주세요. 개별 상담이 필요한 학생은 언제든 연락주세요.");
             lesson5 = lessonRepository.save(lesson5);
 
             Lesson lesson6 = new Lesson();
             lesson6.setLessonDate(LocalDate.now().minusDays(10));
             lesson6.setAcademy(academy1);
             lesson6.setAcademyClass(class1);
+            lesson6.setCommonFeedback("공간도형과 공간좌표에 대해 학습했습니다. 3차원 공간을 2차원으로 표현하는 것이 어려울 수 있으니, 다양한 각도에서 도형을 바라보는 연습이 필요합니다. 입체도형 모형을 활용한 학습을 권장합니다.");
+            lesson6.setAnnouncement("학부모 상담 주간이 다가왔습니다. 상담 희망 시간을 문자로 보내주시기 바랍니다.");
             lesson6 = lessonRepository.save(lesson6);
 
             Lesson lesson7 = new Lesson();
             lesson7.setLessonDate(LocalDate.now().minusDays(7));
             lesson7.setAcademy(academy2);
             lesson7.setAcademyClass(class6);
+            lesson7.setCommonFeedback("수능 기출 문제를 풀며 실전 감각을 익혔습니다. 시간 배분이 중요하니 모의고사 연습을 많이 해보세요. 오답 노트 작성은 필수입니다. 여러분의 실력이 많이 향상되었습니다. 자신감을 가지세요!");
+            lesson7.setAnnouncement("파이널 모의고사가 이번 주 토요일 오전 9시에 있습니다. 실전처럼 준비해 오세요.");
             lesson7 = lessonRepository.save(lesson7);
 
             Lesson lesson8 = new Lesson();
             lesson8.setLessonDate(LocalDate.now().minusDays(3));
             lesson8.setAcademy(academy1);
             lesson8.setAcademyClass(class2);
+            lesson8.setCommonFeedback("삼각함수의 덧셈정리와 배각공식을 다루었습니다. 공식을 단순히 암기하기보다는 유도 과정을 이해하는 것이 중요합니다. 다음 수업에서는 삼각함수의 그래프 변환을 배울 예정입니다.");
+            lesson8.setAnnouncement("교재 추가 구매가 필요한 학생은 다음 수업 전까지 말씀해 주세요.");
             lesson8 = lessonRepository.save(lesson8);
 
             log.info("Created {} lessons", 8);

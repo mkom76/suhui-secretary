@@ -2,18 +2,24 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { lessonAPI, testAPI, homeworkAPI, type Lesson, type Test, type Homework } from '../api/client'
+import { lessonAPI, testAPI, homeworkAPI, studentHomeworkAPI, type Lesson, type Test, type Homework, type LessonStudentStats } from '../api/client'
 
 const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
 const lesson = ref<Lesson | null>(null)
+const stats = ref<LessonStudentStats | null>(null)
 const unattachedTests = ref<Test[]>([])
 const unattachedHomeworks = ref<Homework[]>([])
 const attachTestDialogVisible = ref(false)
 const attachHomeworkDialogVisible = ref(false)
 const selectedTestId = ref<number | undefined>(undefined)
 const selectedHomeworkId = ref<number | undefined>(undefined)
+const editingContent = ref(false)
+const editCommonFeedback = ref('')
+const editAnnouncement = ref('')
+const editingHomeworkMap = ref<Map<number, boolean>>(new Map())
+const editIncorrectCountMap = ref<Map<number, number>>(new Map())
 
 const lessonId = computed(() => Number(route.params.id))
 
@@ -22,6 +28,10 @@ const fetchLesson = async () => {
   try {
     const response = await lessonAPI.getLesson(lessonId.value)
     lesson.value = response.data
+
+    // Fetch student stats
+    const statsResponse = await lessonAPI.getLessonStats(lessonId.value)
+    stats.value = statsResponse.data
   } catch (error) {
     ElMessage.error('수업 정보를 불러오는데 실패했습니다.')
   } finally {
@@ -153,6 +163,61 @@ const navigateToHomeworkDetail = (homeworkId: number) => {
   router.push(`/homeworks/${homeworkId}`)
 }
 
+const startEditingContent = () => {
+  editCommonFeedback.value = lesson.value?.commonFeedback || ''
+  editAnnouncement.value = lesson.value?.announcement || ''
+  editingContent.value = true
+}
+
+const cancelEditingContent = () => {
+  editingContent.value = false
+  editCommonFeedback.value = ''
+  editAnnouncement.value = ''
+}
+
+const saveContent = async () => {
+  try {
+    await lessonAPI.updateLessonContent(lessonId.value, editCommonFeedback.value, editAnnouncement.value)
+    ElMessage.success('수업 내용이 저장되었습니다.')
+    editingContent.value = false
+    fetchLesson()
+  } catch (error) {
+    ElMessage.error('수업 내용 저장에 실패했습니다.')
+  }
+}
+
+const startEditingHomework = (studentId: number, currentIncorrectCount: number | undefined) => {
+  editingHomeworkMap.value.set(studentId, true)
+  editIncorrectCountMap.value.set(studentId, currentIncorrectCount || 0)
+}
+
+const cancelEditingHomework = (studentId: number) => {
+  editingHomeworkMap.value.delete(studentId)
+  editIncorrectCountMap.value.delete(studentId)
+}
+
+const saveHomeworkIncorrectCount = async (studentId: number, homeworkId: number, totalQuestions: number) => {
+  const incorrectCount = editIncorrectCountMap.value.get(studentId)
+
+  if (incorrectCount === undefined) return
+
+  // Validation
+  if (incorrectCount < 0 || incorrectCount > totalQuestions) {
+    ElMessage.error(`오답 개수는 0부터 ${totalQuestions} 사이여야 합니다.`)
+    return
+  }
+
+  try {
+    await studentHomeworkAPI.updateIncorrectCount(studentId, homeworkId, incorrectCount)
+    ElMessage.success('숙제 완성도가 업데이트되었습니다.')
+    editingHomeworkMap.value.delete(studentId)
+    editIncorrectCountMap.value.delete(studentId)
+    fetchLesson()
+  } catch (error) {
+    ElMessage.error('숙제 완성도 업데이트에 실패했습니다.')
+  }
+}
+
 onMounted(() => {
   fetchLesson()
 })
@@ -182,6 +247,73 @@ onMounted(() => {
             {{ lesson.className }}
           </el-descriptions-item>
         </el-descriptions>
+      </div>
+    </el-card>
+
+    <!-- Lesson Content: Feedback and Announcement -->
+    <el-card shadow="never" style="margin-bottom: 24px">
+      <template #header>
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 600">수업 내용</h3>
+          <el-button v-if="!editingContent" type="primary" size="small" @click="startEditingContent">
+            편집
+          </el-button>
+          <div v-else style="display: flex; gap: 8px">
+            <el-button size="small" @click="cancelEditingContent">취소</el-button>
+            <el-button type="primary" size="small" @click="saveContent">저장</el-button>
+          </div>
+        </div>
+      </template>
+
+      <div v-if="lesson">
+        <!-- View Mode -->
+        <div v-if="!editingContent">
+          <div style="margin-bottom: 24px">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px">
+              <el-icon size="18" color="#409eff"><ChatLineSquare /></el-icon>
+              <span style="font-weight: 600; font-size: 16px">수업 공통 피드백</span>
+            </div>
+            <div style="padding: 16px; background: #f5f7fa; border-radius: 8px; white-space: pre-wrap; line-height: 1.6">
+              {{ lesson.commonFeedback || '피드백이 작성되지 않았습니다.' }}
+            </div>
+          </div>
+
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px">
+              <el-icon size="18" color="#e6a23c"><BellFilled /></el-icon>
+              <span style="font-weight: 600; font-size: 16px">공지사항</span>
+            </div>
+            <div style="padding: 16px; background: #fef0f0; border-radius: 8px; white-space: pre-wrap; line-height: 1.6">
+              {{ lesson.announcement || '공지사항이 작성되지 않았습니다.' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Mode -->
+        <div v-else>
+          <el-form label-position="top">
+            <el-form-item label="수업 공통 피드백">
+              <el-input
+                v-model="editCommonFeedback"
+                type="textarea"
+                :rows="6"
+                placeholder="수업 공통 피드백을 입력하세요"
+                maxlength="2000"
+                show-word-limit
+              />
+            </el-form-item>
+            <el-form-item label="공지사항">
+              <el-input
+                v-model="editAnnouncement"
+                type="textarea"
+                :rows="4"
+                placeholder="공지사항을 입력하세요"
+                maxlength="1000"
+                show-word-limit
+              />
+            </el-form-item>
+          </el-form>
+        </div>
       </div>
     </el-card>
 
@@ -246,9 +378,6 @@ onMounted(() => {
               <el-tag type="success">연결됨</el-tag>
             </div>
             <div style="display: flex; gap: 12px">
-              <el-button type="primary" @click="navigateToHomeworkDetail(lesson.homeworkId!)">
-                숙제 상세
-              </el-button>
               <el-button type="warning" @click="handleDetachHomework">
                 숙제 제거
               </el-button>
@@ -258,6 +387,111 @@ onMounted(() => {
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- Student Test Scores Section -->
+    <el-card v-if="lesson?.testTitle && stats?.testScores" shadow="never" style="margin-top: 24px">
+      <template #header>
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 600">학생별 시험 성적</h3>
+          <el-tag type="primary" size="large">
+            반 평균: {{ stats.testAverage?.toFixed(1) }}점
+          </el-tag>
+        </div>
+      </template>
+
+      <el-table :data="stats.testScores" style="width: 100%" stripe>
+        <el-table-column label="등수" width="80" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="row.rank === 1" type="danger" effect="dark">{{ row.rank }}등</el-tag>
+            <el-tag v-else-if="row.rank === 2" type="warning" effect="dark">{{ row.rank }}등</el-tag>
+            <el-tag v-else-if="row.rank === 3" type="success" effect="dark">{{ row.rank }}등</el-tag>
+            <span v-else-if="row.rank" style="font-weight: 600">{{ row.rank }}등</span>
+            <span v-else style="color: #909399">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="studentName" label="학생 이름" min-width="150" />
+        <el-table-column label="점수" width="120" align="center">
+          <template #default="{ row }">
+            <span v-if="row.submitted" style="font-size: 16px; font-weight: 600; color: #409eff">
+              {{ row.score }}점
+            </span>
+            <el-tag v-else type="info">미제출</el-tag>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+
+    <!-- Student Homework Completions Section -->
+    <el-card v-if="lesson?.homeworkTitle && stats?.homeworkCompletions" shadow="never" style="margin-top: 24px">
+      <template #header>
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 600">학생별 숙제 완성도</h3>
+          <el-tag type="success" size="large">
+            반 평균 완성도: {{ stats.homeworkAverage?.toFixed(1) }}%
+          </el-tag>
+        </div>
+      </template>
+
+      <el-table :data="stats.homeworkCompletions" style="width: 100%" stripe>
+        <el-table-column prop="studentName" label="학생 이름" min-width="80" />
+        <el-table-column label="오답 개수" width="180" align="center">
+          <template #default="{ row }">
+            <!-- Editing mode -->
+            <div v-if="editingHomeworkMap.get(row.studentId)" style="display: flex; align-items: center; gap: 8px; justify-content: center">
+              <el-input-number
+                :model-value="editIncorrectCountMap.get(row.studentId)"
+                @update:model-value="(val: number) => editIncorrectCountMap.set(row.studentId, val)"
+                :min="0"
+                :max="row.totalQuestions"
+                size="small"
+                style="width: 100px"
+              />
+              <span style="color: #909399">/ {{ row.totalQuestions }}</span>
+            </div>
+            <!-- View mode -->
+            <div v-else>
+              <span v-if="row.completed" style="font-weight: 600">
+                {{ row.incorrectCount }} / {{ row.totalQuestions }}
+              </span>
+              <el-tag v-else type="info">미완성</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="완성도" width="150" align="center">
+          <template #default="{ row }">
+            <div v-if="row.completed || editingHomeworkMap.get(row.studentId)" style="display: flex; align-items: center; gap: 12px">
+              <el-progress
+                :percentage="editingHomeworkMap.get(row.studentId)
+                  ? Math.round(((row.totalQuestions - (editIncorrectCountMap.get(row.studentId) || 0)) / row.totalQuestions) * 100)
+                  : (row.completion || 0)"
+                :color="(editingHomeworkMap.get(row.studentId)
+                  ? Math.round(((row.totalQuestions - (editIncorrectCountMap.get(row.studentId) || 0)) / row.totalQuestions) * 100)
+                  : (row.completion || 0)) >= 80 ? '#67c23a' : (editingHomeworkMap.get(row.studentId)
+                  ? Math.round(((row.totalQuestions - (editIncorrectCountMap.get(row.studentId) || 0)) / row.totalQuestions) * 100)
+                  : (row.completion || 0)) >= 50 ? '#e6a23c' : '#f56c6c'"
+                style="flex: 1"
+              />
+            </div>
+            <el-tag v-else type="info">미제출</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="작업" width="160" align="center">
+          <template #default="{ row }">
+            <div v-if="editingHomeworkMap.get(row.studentId)" style="display: flex; gap: 4px; justify-content: center">
+              <el-button type="primary" size="small" @click="saveHomeworkIncorrectCount(row.studentId, lesson!.homeworkId!, row.totalQuestions)">
+                저장
+              </el-button>
+              <el-button size="small" @click="cancelEditingHomework(row.studentId)">
+                취소
+              </el-button>
+            </div>
+            <el-button v-else type="primary" size="small" @click="startEditingHomework(row.studentId, row.incorrectCount)">
+              편집
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
 
     <!-- Attach Test Dialog -->
     <el-dialog v-model="attachTestDialogVisible" title="시험 연결" width="500px">

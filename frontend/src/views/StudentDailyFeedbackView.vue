@@ -11,6 +11,7 @@ const feedback = ref<DailyFeedback | null>(null)
 const currentUser = ref<any>(null)
 const lessons = ref<Lesson[]>([])
 const selectedLessonId = ref<number | null>(null)
+const selectedLesson = ref<Lesson | null>(null)
 const studentId = ref<number | null>(null)
 const studentName = ref<string>('')
 const isTeacherView = computed(() => route.params.id !== undefined)
@@ -67,6 +68,11 @@ const fetchFeedback = async () => {
 
   loading.value = true
   try {
+    // Fetch lesson details
+    const lessonRes = await lessonAPI.getLesson(selectedLessonId.value)
+    selectedLesson.value = lessonRes.data
+
+    // Fetch feedback
     const feedbackRes = await dailyFeedbackAPI.getDailyFeedback(
       studentId.value,
       selectedLessonId.value
@@ -139,7 +145,7 @@ onMounted(() => {
       <div style="display: flex; justify-content: space-between; align-items: center">
         <div>
           <h1 style="margin: 0 0 8px; font-size: 28px; font-weight: 600; color: #303133">
-            {{ studentName }}님의 학습 피드백
+            {{ studentName }}님의 수업 피드백
           </h1>
         </div>
         <el-button @click="router.push(`/students/${studentId}`)" :icon="ArrowLeft" size="large">
@@ -152,7 +158,7 @@ onMounted(() => {
     <el-card shadow="never" style="margin-bottom: 24px">
       <div style="text-align: center">
         <h1 v-if="!isTeacherView" style="margin: 0 0 8px; font-size: 32px; font-weight: 600; color: #303133">
-          학습 피드백
+          수업 피드백
         </h1>
         <p v-if="feedback" style="margin: 0 0 16px; color: #909399; font-size: 16px">
           {{ new Date(feedback.lessonDate).toLocaleDateString('ko-KR', {
@@ -179,6 +185,27 @@ onMounted(() => {
             />
           </el-select>
         </div>
+      </div>
+    </el-card>
+
+    <!-- Announcement (공지사항 - 맨 위) -->
+    <el-card v-if="selectedLesson?.announcement" shadow="never" style="margin-bottom: 24px">
+      <template #header>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <el-icon size="20" color="#e6a23c"><BellFilled /></el-icon>
+          <span style="font-weight: 600; font-size: 16px">공지사항</span>
+        </div>
+      </template>
+      <div style="
+        background: #fef0f0;
+        padding: 20px;
+        border-radius: 8px;
+        line-height: 1.8;
+        font-size: 15px;
+        color: #303133;
+        white-space: pre-wrap;
+      ">
+        {{ selectedLesson.announcement }}
       </div>
     </el-card>
 
@@ -327,11 +354,32 @@ onMounted(() => {
         </el-empty>
       </el-card>
 
+      <!-- Common Feedback (수업 공통 피드백 - 개별 피드백 위) -->
+      <el-card v-if="selectedLesson?.commonFeedback" shadow="never" style="margin-bottom: 24px">
+        <template #header>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <el-icon size="20" color="#409eff"><ChatLineSquare /></el-icon>
+            <span style="font-weight: 600; font-size: 16px">수업 공통 피드백</span>
+          </div>
+        </template>
+        <div style="
+          background: #f5f7fa;
+          padding: 20px;
+          border-radius: 8px;
+          line-height: 1.8;
+          font-size: 15px;
+          color: #303133;
+          white-space: pre-wrap;
+        ">
+          {{ selectedLesson.commonFeedback }}
+        </div>
+      </el-card>
+
       <el-card shadow="never">
         <template #header>
           <div style="display: flex; align-items: center; gap: 8px">
             <el-icon size="20" color="#f56c6c"><ChatDotRound /></el-icon>
-            <span style="font-weight: 600; font-size: 16px">선생님 피드백</span>
+            <span style="font-weight: 600; font-size: 16px">개별 피드백</span>
           </div>
         </template>
 
@@ -351,7 +399,7 @@ onMounted(() => {
             {{ feedback.instructorFeedback }}
           </div>
         </div>
-        <el-empty v-else description="아직 선생님 피드백이 없습니다" :image-size="80">
+        <el-empty v-else description="아직 개별 피드백이 없습니다" :image-size="80">
           <template #image>
             <el-icon size="80" color="#c0c4cc"><ChatDotRound /></el-icon>
           </template>

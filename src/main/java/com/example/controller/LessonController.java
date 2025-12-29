@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.dto.LessonDto;
+import com.example.dto.LessonStudentStatsDto;
 import com.example.service.LessonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -65,5 +66,40 @@ public class LessonController {
     @GetMapping("/student/{studentId}")
     public ResponseEntity<List<LessonDto>> getLessonsByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(lessonService.getLessonsByStudent(studentId));
+    }
+
+    @GetMapping("/{lessonId}/stats")
+    public ResponseEntity<LessonStudentStatsDto> getLessonStudentStats(@PathVariable Long lessonId) {
+        return ResponseEntity.ok(lessonService.getLessonStudentStats(lessonId));
+    }
+
+    @PutMapping("/{lessonId}/content")
+    public ResponseEntity<LessonDto> updateLessonContent(
+            @PathVariable Long lessonId,
+            @RequestBody UpdateLessonContentRequest request) {
+        return ResponseEntity.ok(lessonService.updateLessonContent(
+                lessonId, request.getCommonFeedback(), request.getAnnouncement()));
+    }
+
+    // Request DTO for updating lesson content
+    public static class UpdateLessonContentRequest {
+        private String commonFeedback;
+        private String announcement;
+
+        public String getCommonFeedback() {
+            return commonFeedback;
+        }
+
+        public void setCommonFeedback(String commonFeedback) {
+            this.commonFeedback = commonFeedback;
+        }
+
+        public String getAnnouncement() {
+            return announcement;
+        }
+
+        public void setAnnouncement(String announcement) {
+            this.announcement = announcement;
+        }
     }
 }

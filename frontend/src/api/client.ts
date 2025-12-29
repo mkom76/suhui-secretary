@@ -111,6 +111,8 @@ interface Lesson {
   testTitle?: string;
   homeworkId?: number;
   homeworkTitle?: string;
+  commonFeedback?: string;
+  announcement?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -203,6 +205,31 @@ export const studentHomeworkAPI = {
     client.delete(`/student-homeworks/student/${studentId}/homework/${homeworkId}`),
 };
 
+// Lesson Student Stats Types
+export interface LessonStudentStats {
+  testScores?: StudentTestScore[];
+  testAverage?: number;
+  homeworkCompletions?: StudentHomeworkCompletion[];
+  homeworkAverage?: number;
+}
+
+export interface StudentTestScore {
+  studentId: number;
+  studentName: string;
+  score?: number;
+  rank?: number;
+  submitted: boolean;
+}
+
+export interface StudentHomeworkCompletion {
+  studentId: number;
+  studentName: string;
+  incorrectCount?: number;
+  completion?: number;
+  completed: boolean;
+  totalQuestions: number;
+}
+
 // Lessons API
 export const lessonAPI = {
   getLessons: (params?: any) => client.get<{ content: Lesson[] }>('/lessons', { params }),
@@ -215,6 +242,9 @@ export const lessonAPI = {
   detachTest: (lessonId: number) => client.delete(`/lessons/${lessonId}/test`),
   detachHomework: (lessonId: number) => client.delete(`/lessons/${lessonId}/homework`),
   deleteLesson: (id: number) => client.delete(`/lessons/${id}`),
+  getLessonStats: (lessonId: number) => client.get<LessonStudentStats>(`/lessons/${lessonId}/stats`),
+  updateLessonContent: (lessonId: number, commonFeedback: string, announcement: string) =>
+    client.put<Lesson>(`/lessons/${lessonId}/content`, { commonFeedback, announcement }),
 };
 
 // Auth API

@@ -324,7 +324,7 @@ onMounted(() => {
           </el-button>
           <el-button type="success" @click="router.push(isTeacher ? `/students/${studentId}/feedback` : '/student/daily-feedback')">
             <el-icon style="margin-right: 8px"><View /></el-icon>
-            학습 피드백 보기
+            수업 피드백 보기
           </el-button>
           <el-button @click="goBack" :icon="ArrowLeft">
             {{ isTeacher ? '목록으로' : '대시보드로' }}

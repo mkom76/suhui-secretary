@@ -41,26 +41,32 @@ public class SubmissionService {
         
         // 답안 저장 및 채점
         List<StudentSubmissionDetail> details = new ArrayList<>();
-        int correctCount = 0;
-        
+        double earnedPoints = 0.0;
+        double totalPoints = 0.0;
+
         for (TestQuestion question : questions) {
             String studentAnswer = answers.get(question.getNumber());
-            boolean isCorrect = question.getAnswer() != null && 
+            boolean isCorrect = question.getAnswer() != null &&
                               question.getAnswer().equals(studentAnswer);
-            
+
             StudentSubmissionDetail detail = StudentSubmissionDetail.builder()
                     .submission(submission)
                     .question(question)
                     .studentAnswer(studentAnswer)
                     .isCorrect(isCorrect)
                     .build();
-            
+
             details.add(detail);
-            if (isCorrect) correctCount++;
+
+            // 배점 합산
+            totalPoints += question.getPoints();
+            if (isCorrect) {
+                earnedPoints += question.getPoints();
+            }
         }
-        
-        // 총점 계산
-        int totalScore = questions.isEmpty() ? 0 : (correctCount * 100 / questions.size());
+
+        // 총점 계산 (배점 기반, 반올림)
+        int totalScore = totalPoints == 0 ? 0 : (int) Math.round((earnedPoints / totalPoints) * 100);
         submission.setTotalScore(totalScore);
         
         // 기존 상세 답안 삭제 후 새로 저장
