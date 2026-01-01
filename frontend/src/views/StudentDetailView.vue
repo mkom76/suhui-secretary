@@ -15,6 +15,8 @@ import {
   type Lesson,
   lessonAPI
 } from '../api/client'
+import { useBreakpoint } from '@/composables/useBreakpoint'
+import { useTouchGestures } from '@/composables/useTouchGestures'
 
 const route = useRoute()
 const router = useRouter()
@@ -42,7 +44,22 @@ const feedbackForm = ref({
   authorName: ''
 })
 
-// 확대/축소 및 이동 상태
+// 반응형 breakpoint
+const { isMobile, isSmallScreen } = useBreakpoint()
+
+// 터치 제스처 (차트용)
+const {
+  zoom: touchZoom,
+  panX: touchPanX,
+  panY: touchPanY,
+  isDragging: isTouchDragging,
+  handleTouchStart,
+  handleTouchMove,
+  handleTouchEnd,
+  resetZoomAndPan: resetTouch
+} = useTouchGestures()
+
+// 확대/축소 및 이동 상태 (마우스용)
 const zoom = ref(1)
 const panX = ref(0)
 const panY = ref(0)
@@ -50,9 +67,30 @@ const isDragging = ref(false)
 const dragStartX = ref(0)
 const dragStartY = ref(0)
 
-// 차트 포인트 계산 (모든 좌표 사전 계산)
+// 통합 zoom/pan (마우스와 터치 제스처 통합)
+const combinedZoom = computed(() => isDragging.value ? zoom.value : touchZoom.value)
+const combinedPanX = computed(() => isDragging.value ? panX.value : touchPanX.value)
+const combinedPanY = computed(() => isDragging.value ? panY.value : touchPanY.value)
+
+// 반응형 스타일
+const containerPadding = computed(() => isMobile.value ? '12px' : '24px')
+const progressSize = computed(() => isMobile.value ? 80 : 120)
+const progressStrokeWidth = computed(() => isMobile.value ? 8 : 10)
+const chartViewBox = computed(() => isMobile.value ? '0 0 350 200' : '0 0 700 250')
+const chartFontSize = computed(() => isMobile.value ? 10 : 12)
+const dialogWidth = computed(() => isMobile.value ? '95%' : '90%')
+
+// 차트 포인트 계산 (모든 좌표 사전 계산, 반응형)
 const chartPoints = computed(() => {
   if (submissions.value.length === 0) return []
+
+  // 반응형 차트 크기
+  const chartWidth = isMobile.value ? 350 : 700
+  const chartHeight = isMobile.value ? 200 : 250
+  const marginLeft = isMobile.value ? 30 : 60
+  const marginRight = isMobile.value ? 20 : 40
+  const marginTop = isMobile.value ? 15 : 30
+  const marginBottom = isMobile.value ? 15 : 30
 
   const points = submissions.value.map((s, index) => {
     const testId = s.testId
@@ -63,11 +101,15 @@ const chartPoints = computed(() => {
     // X 좌표 계산
     const totalPoints = submissions.value.length
     const divisor = totalPoints > 1 ? totalPoints - 1 : 1
-    const x = 60 + (index * 620 / divisor)
+    const plotWidth = chartWidth - marginLeft - marginRight
+    const x = marginLeft + (index * plotWidth / divisor)
 
     // Y 좌표 계산
-    const studentY = 190 - (studentScore / 100) * 160
-    const academyY = 190 - (academyAverage / 100) * 160
+    const plotHeight = chartHeight - marginTop - marginBottom
+    const plotTop = marginTop
+    const plotBottom = chartHeight - marginBottom
+    const studentY = plotBottom - (studentScore / 100) * plotHeight
+    const academyY = plotBottom - (academyAverage / 100) * plotHeight
     const labelY = studentY - 12
 
     return {
@@ -156,11 +198,12 @@ const openChartModal = () => {
   resetZoomAndPan()
 }
 
-// 줌/팬 초기화
+// 줌/팬 초기화 (마우스와 터치 모두 초기화)
 const resetZoomAndPan = () => {
   zoom.value = 1
   panX.value = 0
   panY.value = 0
+  resetTouch()
 }
 
 // 마우스 휠로 줌
@@ -189,11 +232,6 @@ const handleMouseMove = (event: MouseEvent) => {
 const handleMouseUp = () => {
   isDragging.value = false
 }
-
-// SVG 변환 계산
-const svgTransform = computed(() => {
-  return `translate(${panX.value}, ${panY.value}) scale(${zoom.value})`
-})
 
 const fetchStudentDetail = async () => {
   loading.value = true
@@ -319,7 +357,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-loading="loading" style="padding: 24px; max-width: 1200px; margin: 0 auto">
+  <div v-loading="loading" :style="{ padding: containerPadding, maxWidth: '1200px', margin: '0 auto' }">
     <!-- Header -->
     <el-card shadow="never" style="margin-bottom: 24px">
       <div>
@@ -329,16 +367,16 @@ onMounted(() => {
           </el-icon>
           <span>{{ student?.name || '학생 상세' }}</span>
         </h1>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap">
-          <el-button v-if="isTeacher" type="primary" @click="openTodayFeedbackDialog">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-content: flex-start; justify-content: flex-start; margin: 0; width: 100%">
+          <el-button v-if="isTeacher" type="primary" @click="openTodayFeedbackDialog" style="margin: 0">
             <el-icon style="margin-right: 8px"><Edit /></el-icon>
             수업 피드백 작성
           </el-button>
-          <el-button type="success" @click="router.push(isTeacher ? `/students/${studentId}/feedback` : '/student/daily-feedback')">
+          <el-button type="success" @click="router.push(isTeacher ? `/students/${studentId}/feedback` : '/student/daily-feedback')" style="margin: 0">
             <el-icon style="margin-right: 8px"><View /></el-icon>
             수업 피드백 보기
           </el-button>
-          <el-button @click="goBack" :icon="ArrowLeft">
+          <el-button @click="goBack" :icon="ArrowLeft" style="margin: 0">
             {{ isTeacher ? '목록으로' : '대시보드로' }}
           </el-button>
         </div>
@@ -348,7 +386,7 @@ onMounted(() => {
     <!-- Student Info & Stats -->
     <el-row :gutter="24" style="margin-bottom: 24px">
       <!-- 학생 정보 -->
-      <el-col :span="8">
+      <el-col :xs="24" :sm="24" :md="8">
         <el-card shadow="never">
           <template #header>
             <div style="display: flex; align-items: center; gap: 8px">
@@ -386,13 +424,13 @@ onMounted(() => {
       </el-col>
 
       <!-- 통계 -->
-      <el-col :span="16">
+      <el-col :xs="24" :sm="24" :md="16">
         <el-card shadow="never">
           <el-tabs v-model="activeTab" type="card">
             <!-- 시험 통계 탭 -->
             <el-tab-pane label="시험 통계" name="test">
               <el-row :gutter="16" style="margin-bottom: 16px">
-                <el-col :span="12">
+                <el-col :xs="12" :sm="12" :md="12">
                   <div style="text-align: center; padding: 20px; background: #f0f9ff; border-radius: 8px">
                     <div style="font-size: 32px; font-weight: 600; color: #409eff; margin-bottom: 8px">
                       {{ submissions.length }}
@@ -400,7 +438,7 @@ onMounted(() => {
                     <div style="color: #909399; font-size: 14px">총 응시 시험</div>
                   </div>
                 </el-col>
-                <el-col :span="12">
+                <el-col :xs="12" :sm="12" :md="12">
                   <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px">
                     <div style="font-size: 32px; font-weight: 600; color: #67c23a; margin-bottom: 8px">
                       {{ averageScore }}
@@ -411,7 +449,7 @@ onMounted(() => {
               </el-row>
 
               <el-row :gutter="16">
-                <el-col :span="12">
+                <el-col :xs="12" :sm="12" :md="12">
                   <div style="text-align: center; padding: 20px; background: #fffbeb; border-radius: 8px">
                     <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
                       {{ maxScore }}
@@ -419,7 +457,7 @@ onMounted(() => {
                     <div style="color: #909399; font-size: 14px">최고 점수</div>
                   </div>
                 </el-col>
-                <el-col :span="12">
+                <el-col :xs="12" :sm="12" :md="12">
                   <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px">
                     <div style="font-size: 32px; font-weight: 600; color: #f56c6c; margin-bottom: 8px">
                       {{ minScore }}
@@ -448,7 +486,7 @@ onMounted(() => {
               </div>
             </div>
 
-            <svg viewBox="0 0 700 250" style="width: 100%; height: 250px">
+            <svg :viewBox="chartViewBox" style="width: 100%; height: auto">
               <!-- 배경 격자선 -->
               <line x1="60" y1="30" x2="680" y2="30" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4" />
               <line x1="60" y1="70" x2="680" y2="70" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4" />
@@ -536,7 +574,7 @@ onMounted(() => {
             <!-- 숙제 통계 탭 -->
             <el-tab-pane label="숙제 통계" name="homework">
               <el-row :gutter="16" style="margin-bottom: 16px">
-                <el-col :span="12">
+                <el-col :xs="12" :sm="12" :md="12">
                   <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 8px; position: relative">
                     <div style="font-size: 32px; font-weight: 600; color: #f56c6c; margin-bottom: 8px">
                       {{ incompleteHomeworkCount }}
@@ -551,7 +589,7 @@ onMounted(() => {
                     </div>
                   </div>
                 </el-col>
-                <el-col :span="12">
+                <el-col :xs="12" :sm="12" :md="12">
                   <div style="text-align: center; padding: 20px; background: #fff7e6; border-radius: 8px">
                     <div style="font-size: 32px; font-weight: 600; color: #e6a23c; margin-bottom: 8px">
                       {{ totalIncorrectCount }}개
@@ -562,27 +600,27 @@ onMounted(() => {
               </el-row>
 
               <el-row :gutter="16">
-                <el-col :span="12">
+                <el-col :xs="12" :sm="12" :md="12">
                   <div style="padding: 10px; background: #f0fdf4; border-radius: 8px; text-align: center">
                     <div style="color: #909399; font-size: 14px; margin-bottom: 12px">평균 완성도</div>
                     <el-progress
                       type="circle"
                       :percentage="averageCompletion"
                       :color="averageCompletion >= 80 ? '#67c23a' : averageCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
-                      :width="120"
-                      :stroke-width="10"
+                      :width="progressSize"
+                      :stroke-width="progressStrokeWidth"
                     />
                   </div>
                 </el-col>
-                <el-col :span="12">
+                <el-col :xs="12" :sm="12" :md="12">
                   <div style="padding: 10px; background: #fffbeb; border-radius: 8px; text-align: center">
                     <div style="color: #909399; font-size: 14px; margin-bottom: 12px">최저 완성도</div>
                     <el-progress
                       type="circle"
                       :percentage="minCompletion"
                       :color="minCompletion >= 80 ? '#67c23a' : minCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
-                      :width="120"
-                      :stroke-width="10"
+                      :width="progressSize"
+                      :stroke-width="progressStrokeWidth"
                     />
                   </div>
                 </el-col>
@@ -634,7 +672,8 @@ onMounted(() => {
         </div>
       </template>
 
-      <el-table :data="submissions" style="width: 100%" stripe>
+      <!-- Desktop: Table View -->
+      <el-table v-if="!isMobile" :data="submissions" style="width: 100%" stripe>
         <el-table-column label="시험명" min-width="200">
           <template #default="{ row }">
             <div
@@ -670,6 +709,44 @@ onMounted(() => {
         </el-table-column>
       </el-table>
 
+      <!-- Mobile: Card View -->
+      <div v-else>
+        <el-card
+          v-for="submission in submissions"
+          :key="submission.id"
+          shadow="hover"
+          style="margin-bottom: 16px; cursor: pointer"
+          @click="navigateToTest(submission.testId)"
+        >
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <!-- Title and Score -->
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px">
+              <div style="flex: 1">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #409eff">
+                  {{ submission.testTitle || '시험명 없음' }}
+                </h3>
+              </div>
+              <el-tag
+                :type="submission.totalScore >= 80 ? 'success' : submission.totalScore >= 60 ? 'warning' : 'danger'"
+                size="large"
+              >
+                {{ submission.totalScore }}점
+              </el-tag>
+            </div>
+
+            <!-- Date Info -->
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #606266">
+              <el-icon color="#909399">
+                <Calendar />
+              </el-icon>
+              <span>{{ submission.submittedAt ? new Date(submission.submittedAt).toLocaleString('ko-KR', {
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+              }) : '-' }}</span>
+            </div>
+          </div>
+        </el-card>
+      </div>
+
       <el-empty v-if="submissions.length === 0" description="아직 응시한 시험이 없습니다" />
     </el-card>
 
@@ -677,7 +754,8 @@ onMounted(() => {
     <el-dialog
       v-model="chartModalVisible"
       title="점수 추이 상세"
-      width="90%"
+      :width="dialogWidth"
+      :fullscreen="isMobile"
       top="5vh"
       :close-on-click-modal="false"
     >
@@ -693,7 +771,7 @@ onMounted(() => {
           </div>
         </div>
         <div style="display: flex; gap: 12px; align-items: center">
-          <span style="color: #909399; font-size: 13px">확대: {{ Math.round(zoom * 100) }}%</span>
+          <span style="color: #909399; font-size: 13px">확대: {{ Math.round(combinedZoom * 100) }}%</span>
           <el-button size="small" @click="resetZoomAndPan" :icon="Refresh">초기화</el-button>
         </div>
       </div>
@@ -705,19 +783,24 @@ onMounted(() => {
           overflow: hidden;
           position: relative;
           height: 600px;
+          touch-action: none;
         "
         @wheel="handleWheel"
         @mousedown="handleMouseDown"
         @mousemove="handleMouseMove"
         @mouseup="handleMouseUp"
         @mouseleave="handleMouseUp"
+        @touchstart="handleTouchStart"
+        @touchmove="handleTouchMove"
+        @touchend="handleTouchEnd"
+        @touchcancel="handleTouchEnd"
       >
         <svg
-          viewBox="0 0 700 250"
+          :viewBox="chartViewBox"
           style="width: 100%; height: 100%; cursor: grab"
-          :style="{ cursor: isDragging ? 'grabbing' : 'grab' }"
+          :style="{ cursor: isDragging || isTouchDragging ? 'grabbing' : 'grab' }"
         >
-          <g :transform="svgTransform" style="transform-origin: center">
+          <g :transform="`translate(${combinedPanX}, ${combinedPanY}) scale(${combinedZoom})`" style="transform-origin: center">
             <!-- 배경 격자선 -->
             <line x1="60" y1="30" x2="680" y2="30" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4" />
             <line x1="60" y1="70" x2="680" y2="70" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4" />
@@ -814,8 +897,10 @@ onMounted(() => {
 
       <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px; font-size: 13px; color: #606266">
         <div style="font-weight: 600; margin-bottom: 8px; color: #409eff">사용 방법</div>
-        <div>• 마우스 휠: 확대/축소</div>
-        <div>• 클릭 & 드래그: 차트 이동</div>
+        <div v-if="isMobile">• 핀치: 확대/축소</div>
+        <div v-if="isMobile">• 드래그: 차트 이동</div>
+        <div v-if="!isMobile">• 마우스 휠: 확대/축소</div>
+        <div v-if="!isMobile">• 클릭 & 드래그: 차트 이동</div>
         <div>• 초기화 버튼: 원래 크기로 복원</div>
       </div>
     </el-dialog>
@@ -824,7 +909,8 @@ onMounted(() => {
     <el-dialog
       v-model="feedbackDialogVisible"
       title="수업 피드백 작성"
-      width="600px"
+      :width="isMobile ? '95%' : '600px'"
+      :fullscreen="isMobile"
       :close-on-click-modal="false"
     >
       <el-form label-width="100px">
@@ -860,7 +946,8 @@ onMounted(() => {
     <el-dialog
       v-model="incompleteHomeworksDialogVisible"
       title="미완성 숙제 목록"
-      width="700px"
+      :width="isMobile ? '95%' : '700px'"
+      :fullscreen="isMobile"
     >
       <div v-if="incompleteHomeworks.length > 0">
         <el-table :data="incompleteHomeworks" style="width: 100%">

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { dailyFeedbackAPI, type DailyFeedback, authAPI, lessonAPI, type Lesson, studentAPI } from '../api/client'
 import { useRouter, useRoute } from 'vue-router'
+import { useBreakpoint } from '@/composables/useBreakpoint'
 
 const router = useRouter()
 const route = useRoute()
@@ -15,6 +16,10 @@ const selectedLesson = ref<Lesson | null>(null)
 const studentId = ref<number | null>(null)
 const studentName = ref<string>('')
 const isTeacherView = computed(() => route.params.id !== undefined)
+
+const { isMobile } = useBreakpoint()
+
+const containerPadding = computed(() => isMobile.value ? '12px' : '24px')
 
 const fetchLessons = async () => {
   try {
@@ -139,7 +144,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-loading="loading" style="padding: 24px; max-width: 1200px; min-width: 550px; margin: 0 auto">
+  <div v-loading="loading" :style="{ padding: containerPadding, maxWidth: '1200px', margin: '0 auto' }">
     <!-- 선생님용 헤더 (뒤로가기 버튼 포함) -->
     <el-card v-if="isTeacherView" shadow="never" style="margin-bottom: 24px">
       <div style="display: flex; justify-content: space-between; align-items: center">
@@ -211,7 +216,7 @@ onMounted(() => {
 
     <div v-if="feedback">
       <el-row :gutter="24" style="margin-bottom: 24px">
-        <el-col :span="12">
+        <el-col :xs="24" :sm="24" :md="12">
           <el-card shadow="never">
             <template #header>
               <div style="display: flex; align-items: center; gap: 8px">
@@ -250,7 +255,7 @@ onMounted(() => {
           </el-card>
         </el-col>
 
-        <el-col :span="12">
+        <el-col :xs="24" :sm="24" :md="12">
           <el-card shadow="never">
             <template #header>
               <div style="display: flex; align-items: center; gap: 8px">

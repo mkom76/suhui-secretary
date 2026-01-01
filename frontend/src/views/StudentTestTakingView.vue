@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { authAPI, testAPI, submissionAPI } from '@/api/client'
 import type { Test, Question, AuthResponse } from '@/api/client'
+import { useBreakpoint } from '@/composables/useBreakpoint'
 
 const router = useRouter()
 const route = useRoute()
@@ -14,6 +15,9 @@ const test = ref<Test | null>(null)
 const questions = ref<Question[]>([])
 const answers = ref<Record<number, string>>({})
 
+const { isMobile } = useBreakpoint()
+const containerPadding = computed(() => isMobile.value ? '12px' : '24px')
+const badgeSize = computed(() => isMobile.value ? '48px' : '60px')
 const testId = computed(() => Number(route.params.id))
 
 const fetchTestData = async () => {
@@ -109,7 +113,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div style="padding: 24px; max-width: 900px; margin: 0 auto">
+  <div :style="{ padding: containerPadding, maxWidth: isMobile ? '100%' : '900px', margin: '0 auto' }">
     <el-card v-loading="loading" shadow="never">
       <!-- Test Header -->
       <template #header>
@@ -142,9 +146,9 @@ onMounted(() => {
 
       <!-- Questions -->
       <div v-for="question in questions" :key="question.id" style="margin-bottom: 32px">
-        <div style="display: flex; align-items: start; gap: 16px">
-          <div style="flex-shrink: 0; width: 60px; height: 60px; background: linear-gradient(135deg, #409eff, #67c23a); border-radius: 12px; display: flex; align-items: center; justify-content: center">
-            <span style="color: white; font-size: 24px; font-weight: 700">{{ question.number }}</span>
+        <div :style="{ display: 'flex', alignItems: isMobile ? 'stretch' : 'start', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '12px' : '16px' }">
+          <div :style="{ flexShrink: 0, width: badgeSize, height: badgeSize, background: 'linear-gradient(135deg, #409eff, #67c23a)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }">
+            <span :style="{ color: 'white', fontSize: isMobile ? '20px' : '24px', fontWeight: 700 }">{{ question.number }}</span>
           </div>
           <div style="flex: 1">
             <div style="margin-bottom: 12px">
@@ -155,7 +159,7 @@ onMounted(() => {
               placeholder="답을 입력하세요"
               size="large"
             >
-              <template #prepend>답:</template>
+              <template v-if="!isMobile" #prepend>답:</template>
             </el-input>
           </div>
         </div>
@@ -178,7 +182,7 @@ onMounted(() => {
           :loading="submitting"
           :disabled="!allQuestionsAnswered"
           @click="handleSubmit"
-          style="min-width: 200px"
+          :style="{ minWidth: isMobile ? '100%' : '200px' }"
         >
           제출하기
         </el-button>

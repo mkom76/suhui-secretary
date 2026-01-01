@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { authAPI, lessonAPI, submissionAPI, studentAPI } from '@/api/client'
 import type { AuthResponse, Test, Submission, Student, Lesson } from '@/api/client'
+import { useBreakpoint } from '@/composables/useBreakpoint'
 
 const router = useRouter()
 const loading = ref(false)
@@ -12,6 +13,9 @@ const studentInfo = ref<Student | null>(null)
 const availableTests = ref<Test[]>([])
 const mySubmissions = ref<Submission[]>([])
 const pastTestsDialogVisible = ref(false)
+
+const { isMobile } = useBreakpoint()
+const containerPadding = computed(() => isMobile.value ? '12px' : '24px')
 
 const fetchCurrentUser = async () => {
   try {
@@ -84,7 +88,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div style="padding: 24px; max-width: 1200px; margin: 0 auto">
+  <div :style="{ padding: containerPadding, maxWidth: '1200px', margin: '0 auto' }">
     <!-- Top Right Actions -->
     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 16px">
       <el-button @click="$router.push('/settings')">
@@ -110,12 +114,12 @@ onMounted(() => {
             {{ studentInfo.academyName }} · {{ studentInfo.className }}
           </p>
         </div>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap">
-          <el-button type="success" @click="$router.push(`/student/stats`)">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-content: flex-start; justify-content: flex-start; margin: 0; width: 100%">
+          <el-button type="success" @click="$router.push(`/student/stats`)" style="margin: 0">
             <el-icon style="margin-right: 8px"><TrendCharts /></el-icon>
             내 학습 통계
           </el-button>
-          <el-button type="primary" @click="$router.push('/student/daily-feedback')">
+          <el-button type="primary" @click="$router.push('/student/daily-feedback')" style="margin: 0">
             <el-icon style="margin-right: 8px"><Document /></el-icon>
             수업 피드백
           </el-button>
@@ -125,7 +129,7 @@ onMounted(() => {
 
     <!-- Student Info Card -->
     <el-row :gutter="24" style="margin-bottom: 24px">
-      <el-col :span="8">
+      <el-col :xs="24" :sm="12" :md="8">
         <el-card shadow="hover">
           <div style="text-align: center">
             <div style="display: inline-block; padding: 16px; background: #409eff; border-radius: 16px; margin-bottom: 16px">
@@ -140,7 +144,7 @@ onMounted(() => {
         </el-card>
       </el-col>
 
-      <el-col :span="8">
+      <el-col :xs="24" :sm="12" :md="8">
         <el-card shadow="hover">
           <div style="text-align: center">
             <div style="display: inline-block; padding: 16px; background: #67c23a; border-radius: 16px; margin-bottom: 16px">
@@ -156,7 +160,7 @@ onMounted(() => {
         </el-card>
       </el-col>
 
-      <el-col :span="8">
+      <el-col :xs="24" :sm="12" :md="8">
         <el-card shadow="hover" style="cursor: pointer" @click="showPastTestsDialog">
           <div style="text-align: center">
             <div style="display: inline-block; padding: 16px; background: #e6a23c; border-radius: 16px; margin-bottom: 16px">
@@ -177,11 +181,13 @@ onMounted(() => {
     <el-card shadow="never">
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center">
-          <h2 style="margin: 0; font-size: 20px; font-weight: 600">사용 가능한 시험</h2>
+          <h2 style="margin: 0; font-size: 20px; font-weight: 600">시험 리스트</h2>
         </div>
       </template>
 
+      <!-- Desktop: Table View -->
       <el-table
+        v-if="!isMobile"
         :data="availableTests"
         style="width: 100%"
         v-loading="loading"
@@ -236,15 +242,86 @@ onMounted(() => {
         </el-table-column>
       </el-table>
 
+      <!-- Mobile: Card View -->
+      <div v-else v-loading="loading">
+        <el-card
+          v-for="test in availableTests"
+          :key="test.id"
+          shadow="hover"
+          style="margin-bottom: 16px"
+        >
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <!-- Title and Status -->
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #303133; flex: 1">
+                {{ test.title }}
+              </h3>
+              <el-tag v-if="getSubmissionForTest(test.id)" type="success" size="large">
+                제출 완료
+              </el-tag>
+              <el-tag v-else type="warning" size="large">
+                미제출
+              </el-tag>
+            </div>
+
+            <!-- Info Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; color: #606266">
+              <div style="display: flex; align-items: center; gap: 4px">
+                <el-icon><Calendar /></el-icon>
+                <span>{{ test.lessonDate ? new Date(test.lessonDate).toLocaleDateString('ko-KR', {
+                  month: 'long', day: 'numeric'
+                }) : '-' }}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 4px">
+                <el-icon><School /></el-icon>
+                <span>{{ test.className }}</span>
+              </div>
+              <div v-if="test.questionCount" style="display: flex; align-items: center; gap: 4px">
+                <el-icon><Document /></el-icon>
+                <span>{{ test.questionCount }}문제</span>
+              </div>
+              <div v-if="getSubmissionForTest(test.id)" style="display: flex; align-items: center; gap: 4px">
+                <el-icon><Trophy /></el-icon>
+                <span style="font-weight: 600; color: #409eff">
+                  {{ getSubmissionForTest(test.id)?.totalScore }}점
+                </span>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <el-button
+              v-if="!getSubmissionForTest(test.id)"
+              type="primary"
+              size="large"
+              @click="handleTakeTest(test.id)"
+              style="width: 100%; margin-top: 4px"
+            >
+              <el-icon style="margin-right: 8px"><Edit /></el-icon>
+              시험 보기
+            </el-button>
+            <el-button
+              v-else
+              type="info"
+              size="large"
+              disabled
+              style="width: 100%; margin-top: 4px"
+            >
+              <el-icon style="margin-right: 8px"><Check /></el-icon>
+              완료
+            </el-button>
+          </div>
+        </el-card>
+      </div>
+
       <el-empty
         v-if="availableTests.length === 0"
-        description="사용 가능한 시험이 없습니다"
+        description="시험이 없습니다"
         style="padding: 60px 0"
       />
     </el-card>
 
     <!-- Past Tests Dialog -->
-    <el-dialog v-model="pastTestsDialogVisible" title="지난 시험 기록" width="800px">
+    <el-dialog v-model="pastTestsDialogVisible" title="지난 시험 기록" :width="isMobile ? '95%' : '800px'" :fullscreen="isMobile">
       <el-table :data="mySubmissions" style="width: 100%" stripe>
         <el-table-column label="시험 제목" min-width="200">
           <template #default="{ row }">

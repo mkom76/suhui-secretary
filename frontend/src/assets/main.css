@@ -33,3 +33,76 @@ a,
     padding: 0 2rem;
   }
 }
+
+/* Responsive utilities for mobile optimization */
+
+/* Responsive container */
+.container-responsive {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .container-responsive {
+    padding: 12px;
+  }
+
+  /* Mobile-friendly touch targets */
+  .el-button {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+
+  .el-input__inner {
+    min-height: 44px;
+  }
+
+  /* Responsive tables */
+  .el-table {
+    font-size: 14px;
+  }
+
+  /* Card spacing */
+  .el-card {
+    margin-bottom: 12px;
+  }
+
+  /* Responsive typography */
+  h1 {
+    font-size: 24px !important;
+  }
+
+  h2 {
+    font-size: 20px !important;
+  }
+
+  h3 {
+    font-size: 18px !important;
+  }
+
+  /* Reduce padding for mobile */
+  .el-card__body {
+    padding: 16px;
+  }
+
+  .el-descriptions__body .el-descriptions__table .el-descriptions__cell {
+    padding-bottom: 8px;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 992px) {
+  .container-responsive {
+    padding: 20px;
+  }
+}
+
+/* Prevent horizontal scroll */
+body {
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}

@@ -550,8 +550,8 @@ onMounted(() => {
     <!-- Student Homework Assignment Section -->
     <el-card v-if="lessonHomeworks.length > 0 && studentAssignments.length > 0" shadow="never" style="margin-top: 24px">
       <template #header>
-        <div style="display: flex; justify-content: space-between; align-items: center">
-          <h3 style="margin: 0; font-size: 18px; font-weight: 600">학생별 숙제 할당</h3>
+        <div>
+          <h3 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 600">학생별 숙제 할당</h3>
           <div style="display: flex; gap: 12px; align-items: center">
             <el-select
               v-model="bulkAssignHomeworkId"

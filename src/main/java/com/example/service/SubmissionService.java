@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,8 @@ public class SubmissionService {
         // 총점 계산 (배점 기반, 반올림)
         int totalScore = totalPoints == 0 ? 0 : (int) Math.round((earnedPoints / totalPoints) * 100);
         submission.setTotalScore(totalScore);
-        
+        submission.setSubmittedAt(LocalDateTime.now());
+
         // 기존 상세 답안 삭제 후 새로 저장
         submission.getDetails().clear();
         submission.getDetails().addAll(details);
