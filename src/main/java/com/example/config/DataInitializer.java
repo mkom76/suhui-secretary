@@ -493,15 +493,36 @@ public class DataInitializer {
             log.info("Created {} student submissions with details", 8);
 
             // 6. 숙제 데이터 생성 (Lesson과 연결) - 모두 수학 숙제
+            // Lesson1에 여러 숙제 추가 (학생별로 다른 숙제 할당 예시)
             Homework homework1 = new Homework();
-            homework1.setTitle("수학 방정식 기본 문제");
-            homework1.setQuestionCount(30);
-            homework1.setMemo("1차 방정식과 2차 방정식 기본 문제입니다. 다음 주 월요일까지 풀어오세요.");
+            homework1.setTitle("방정식 기본 문제");
+            homework1.setQuestionCount(20);
+            homework1.setMemo("1차 방정식과 2차 방정식 기본 문제입니다.");
             homework1.setDueDate(LocalDate.now().plusDays(7));
             homework1.setAcademy(academy1);
             homework1.setAcademyClass(class1);
             homework1.setLesson(lesson1);
             homeworkRepository.save(homework1);
+
+            Homework homework1a = new Homework();
+            homework1a.setTitle("방정식 심화 문제");
+            homework1a.setQuestionCount(25);
+            homework1a.setMemo("1차/2차 방정식 심화 문제입니다.");
+            homework1a.setDueDate(LocalDate.now().plusDays(7));
+            homework1a.setAcademy(academy1);
+            homework1a.setAcademyClass(class1);
+            homework1a.setLesson(lesson1); // 같은 수업에 연결
+            homeworkRepository.save(homework1a);
+
+            Homework homework1b = new Homework();
+            homework1b.setTitle("방정식 복습 문제");
+            homework1b.setQuestionCount(15);
+            homework1b.setMemo("지난 주 배운 내용 복습 문제입니다.");
+            homework1b.setDueDate(LocalDate.now().plusDays(7));
+            homework1b.setAcademy(academy1);
+            homework1b.setAcademyClass(class1);
+            homework1b.setLesson(lesson1); // 같은 수업에 연결
+            homeworkRepository.save(homework1b);
 
             Homework homework2 = new Homework();
             homework2.setTitle("함수의 극한과 연속성");
@@ -563,26 +584,34 @@ public class DataInitializer {
             homework7.setLesson(lesson7);
             homeworkRepository.save(homework7);
 
-            log.info("Created {} homeworks", 7);
+            log.info("Created {} homeworks", 9); // homework1, 1a, 1b + 6개 = 9개
 
-            // 7. 학생-숙제 완성도 데이터 생성
+            // 7. 학생-숙제 할당 및 완성도 데이터 생성
+            // Lesson1(class1) 학생들 - 각각 다른 숙제 할당
             StudentHomework sh1 = new StudentHomework();
-            sh1.setStudent(student1);
-            sh1.setHomework(homework1);
-            sh1.setIncorrectCount(5); // 30문제 중 5개 오답 (83% 정답률)
+            sh1.setStudent(student1); // 김민준
+            sh1.setHomework(homework1); // 기본 문제
+            sh1.setIncorrectCount(3); // 20문제 중 3개 오답 (85% 정답률)
             studentHomeworkRepository.save(sh1);
 
             StudentHomework sh2 = new StudentHomework();
-            sh2.setStudent(student1);
-            sh2.setHomework(homework6);
-            sh2.setIncorrectCount(14); // 45문제 중 14개 오답 (69% 정답률)
+            sh2.setStudent(student2); // 이서연
+            sh2.setHomework(homework1a); // 심화 문제
+            sh2.setIncorrectCount(5); // 25문제 중 5개 오답 (80% 정답률)
             studentHomeworkRepository.save(sh2);
 
             StudentHomework sh3 = new StudentHomework();
-            sh3.setStudent(student2);
-            sh3.setHomework(homework1);
-            sh3.setIncorrectCount(2); // 30문제 중 2개 오답 (93% 정답률)
+            sh3.setStudent(student3); // 박지호
+            sh3.setHomework(homework1b); // 복습 문제
+            sh3.setIncorrectCount(1); // 15문제 중 1개 오답 (93% 정답률)
             studentHomeworkRepository.save(sh3);
+
+            // Lesson6(class1) student1 - 다른 수업의 숙제
+            StudentHomework sh_lesson6 = new StudentHomework();
+            sh_lesson6.setStudent(student1);
+            sh_lesson6.setHomework(homework6);
+            sh_lesson6.setIncorrectCount(14); // 45문제 중 14개 오답 (69% 정답률)
+            studentHomeworkRepository.save(sh_lesson6);
 
             StudentHomework sh4 = new StudentHomework();
             sh4.setStudent(student3);
@@ -639,8 +668,8 @@ public class DataInitializer {
             log.info("- Tests: 5 (모두 수학 시험)");
             log.info("- Test Questions: 82");
             log.info("- Student Submissions: 8");
-            log.info("- Homeworks: 7 (모두 수학 숙제)");
-            log.info("- Student Homework Records: 10");
+            log.info("- Homeworks: 9 (모두 수학 숙제, lesson1에 3개 숙제 등록 예시)");
+            log.info("- Student Homework Records: 11 (학생별 다른 숙제 할당 예시)");
             log.info("===================================================");
         };
     }

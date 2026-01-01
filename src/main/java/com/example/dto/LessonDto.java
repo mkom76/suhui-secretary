@@ -22,8 +22,6 @@ public class LessonDto {
     private String className;
     private Long testId;
     private String testTitle;
-    private Long homeworkId;
-    private String homeworkTitle;
     private String commonFeedback;
     private String announcement;
     private LocalDateTime createdAt;
@@ -39,8 +37,6 @@ public class LessonDto {
                 .className(lesson.getAcademyClass() != null ? lesson.getAcademyClass().getName() : null)
                 .testId(lesson.getTest() != null ? lesson.getTest().getId() : null)
                 .testTitle(lesson.getTest() != null ? lesson.getTest().getTitle() : null)
-                .homeworkId(lesson.getHomework() != null ? lesson.getHomework().getId() : null)
-                .homeworkTitle(lesson.getHomework() != null ? lesson.getHomework().getTitle() : null)
                 .commonFeedback(lesson.getCommonFeedback())
                 .announcement(lesson.getAnnouncement())
                 .createdAt(lesson.getCreatedAt())

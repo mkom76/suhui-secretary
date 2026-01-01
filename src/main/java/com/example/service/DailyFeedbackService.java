@@ -50,16 +50,20 @@ public class DailyFeedbackService {
         feedback.setLessonId(lessonId);
         feedback.setLessonDate(lesson.getLessonDate());
 
-        // A. Today's homework
-        if (lesson.getHomework() != null) {
-            feedback.setTodayHomework(getHomeworkSummary(studentId, lesson.getHomework()));
+        // A. Today's homework - 학생에게 할당된 숙제만 조회
+        if (!lesson.getHomeworks().isEmpty()) {
+            Optional<Homework> assignedHomework = getAssignedHomework(studentId, lesson.getHomeworks());
+            assignedHomework.ifPresent(homework ->
+                feedback.setTodayHomework(getHomeworkSummary(studentId, homework)));
         }
 
-        // Next homework
+        // Next homework - 다음 수업에서 학생에게 할당된 숙제만 조회
         List<Lesson> nextLessons = lessonRepository.findNextLessonsAfter(
             lesson.getAcademyClass().getId(), lesson.getLessonDate());
-        if (!nextLessons.isEmpty() && nextLessons.get(0).getHomework() != null) {
-            feedback.setNextHomework(getHomeworkSummary(studentId, nextLessons.get(0).getHomework()));
+        if (!nextLessons.isEmpty() && !nextLessons.get(0).getHomeworks().isEmpty()) {
+            Optional<Homework> nextAssignedHomework = getAssignedHomework(studentId, nextLessons.get(0).getHomeworks());
+            nextAssignedHomework.ifPresent(homework ->
+                feedback.setNextHomework(getHomeworkSummary(studentId, homework)));
         }
 
         // B. Today's test with incorrect questions and academy accuracy
@@ -170,5 +174,35 @@ public class DailyFeedbackService {
                 .incorrectQuestions(incorrectQuestions)
                 .questionAccuracyRates(rates)
                 .build();
+    }
+
+    /**
+     * 학생에게 할당된 숙제 찾기
+     * @param studentId 학생 ID
+     * @param homeworks 숙제 목록
+     * @return 할당된 숙제 (Optional)
+     */
+    private Optional<Homework> getAssignedHomework(Long studentId, List<Homework> homeworks) {
+        if (homeworks.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // 숙제 ID 목록 추출
+        List<Long> homeworkIds = homeworks.stream()
+                .map(Homework::getId)
+                .collect(Collectors.toList());
+
+        // 학생에게 할당된 숙제 찾기
+        List<StudentHomework> studentHomeworks = studentHomeworkRepository
+                .findByHomeworkIdIn(homeworkIds).stream()
+                .filter(sh -> sh.getStudent().getId().equals(studentId))
+                .collect(Collectors.toList());
+
+        if (studentHomeworks.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // 첫 번째 할당된 숙제 반환 (학생은 수업당 1개의 숙제만 할당받음)
+        return Optional.of(studentHomeworks.get(0).getHomework());
     }
 }

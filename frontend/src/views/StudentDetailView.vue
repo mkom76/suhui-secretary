@@ -114,9 +114,21 @@ const minScore = computed(() => {
   return Math.min(...submissions.value.map(s => s.totalScore))
 })
 
+// 제출 기한이 지난 숙제만 필터링 (통계 계산용)
+const duePastHomeworks = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // 오늘 날짜의 00:00:00으로 설정
+
+  return studentHomeworks.value.filter(sh => {
+    if (!sh.dueDate) return true // dueDate가 없으면 포함
+    const dueDate = new Date(sh.dueDate)
+    return dueDate < today // 제출 기한이 오늘 이전인 것만 포함
+  })
+})
+
 // 숙제 통계
 const incompleteHomeworks = computed(() => {
-  return studentHomeworks.value.filter(sh => (sh.completion || 0) < 100)
+  return duePastHomeworks.value.filter(sh => (sh.completion || 0) < 100)
 })
 
 const incompleteHomeworkCount = computed(() => {
@@ -124,18 +136,18 @@ const incompleteHomeworkCount = computed(() => {
 })
 
 const averageCompletion = computed(() => {
-  if (studentHomeworks.value.length === 0) return 0
-  const total = studentHomeworks.value.reduce((sum, sh) => sum + (sh.completion || 0), 0)
-  return Math.round(total / studentHomeworks.value.length * 10) / 10
+  if (duePastHomeworks.value.length === 0) return 0
+  const total = duePastHomeworks.value.reduce((sum, sh) => sum + (sh.completion || 0), 0)
+  return Math.round(total / duePastHomeworks.value.length * 10) / 10
 })
 
 const minCompletion = computed(() => {
-  if (studentHomeworks.value.length === 0) return 0
-  return Math.min(...studentHomeworks.value.map(sh => sh.completion || 0))
+  if (duePastHomeworks.value.length === 0) return 0
+  return Math.min(...duePastHomeworks.value.map(sh => sh.completion || 0))
 })
 
 const totalIncorrectCount = computed(() => {
-  return studentHomeworks.value.reduce((sum, sh) => sum + (sh.incorrectCount || 0), 0)
+  return duePastHomeworks.value.reduce((sum, sh) => sum + (sh.incorrectCount || 0), 0)
 })
 
 // 모달 열기
@@ -551,7 +563,7 @@ onMounted(() => {
 
               <el-row :gutter="16">
                 <el-col :span="12">
-                  <div style="padding: 20px; background: #f0fdf4; border-radius: 8px; text-align: center">
+                  <div style="padding: 10px; background: #f0fdf4; border-radius: 8px; text-align: center">
                     <div style="color: #909399; font-size: 14px; margin-bottom: 12px">평균 완성도</div>
                     <el-progress
                       type="circle"
@@ -563,7 +575,7 @@ onMounted(() => {
                   </div>
                 </el-col>
                 <el-col :span="12">
-                  <div style="padding: 20px; background: #fffbeb; border-radius: 8px; text-align: center">
+                  <div style="padding: 10px; background: #fffbeb; border-radius: 8px; text-align: center">
                     <div style="color: #909399; font-size: 14px; margin-bottom: 12px">최저 완성도</div>
                     <el-progress
                       type="circle"
@@ -595,9 +607,9 @@ onMounted(() => {
                       />
                     </template>
                   </el-table-column>
-                  <el-table-column label="제출일" width="150">
+                  <el-table-column label="제출 기한" width="150">
                     <template #default="{ row }">
-                      <span v-if="row.createdAt">{{ new Date(row.createdAt).toLocaleDateString('ko-KR') }}</span>
+                      <span v-if="row.dueDate">{{ new Date(row.dueDate).toLocaleDateString('ko-KR') }}</span>
                       <span v-else style="color: #909399">-</span>
                     </template>
                   </el-table-column>
@@ -866,9 +878,9 @@ onMounted(() => {
               />
             </template>
           </el-table-column>
-          <el-table-column label="제출일" width="120">
+          <el-table-column label="제출 기한" width="120">
             <template #default="{ row }">
-              <span v-if="row.createdAt">{{ new Date(row.createdAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) }}</span>
+              <span v-if="row.dueDate">{{ new Date(row.dueDate).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) }}</span>
               <span v-else style="color: #909399">-</span>
             </template>
           </el-table-column>

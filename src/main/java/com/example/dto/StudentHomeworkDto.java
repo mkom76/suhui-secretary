@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -18,6 +19,8 @@ public class StudentHomeworkDto {
     private String studentName;
     private Long homeworkId;
     private String homeworkTitle;
+    private Integer questionCount; // 전체 문제 수
+    private LocalDate dueDate; // 제출 기한
     private Integer incorrectCount; // 오답 개수
     private Integer completion; // 완성도 (계산된 값, 0-100)
     private LocalDateTime createdAt;
@@ -30,6 +33,8 @@ public class StudentHomeworkDto {
                 .studentName(entity.getStudent().getName())
                 .homeworkId(entity.getHomework().getId())
                 .homeworkTitle(entity.getHomework().getTitle())
+                .questionCount(entity.getHomework().getQuestionCount())
+                .dueDate(entity.getHomework().getDueDate())
                 .incorrectCount(entity.getIncorrectCount())
                 .completion(entity.getCompletion())
                 .createdAt(entity.getCreatedAt())

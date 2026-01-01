@@ -40,8 +40,9 @@ public class Lesson {
     @OneToOne(mappedBy = "lesson", cascade = CascadeType.ALL)
     private Test test;
 
-    @OneToOne(mappedBy = "lesson", cascade = CascadeType.ALL)
-    private Homework homework;
+    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Homework> homeworks = new ArrayList<>();
 
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL)
     @Builder.Default

@@ -2,7 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { lessonAPI, testAPI, homeworkAPI, studentHomeworkAPI, type Lesson, type Test, type Homework, type LessonStudentStats } from '../api/client'
+import { ChatLineSquare, BellFilled } from '@element-plus/icons-vue'
+import { lessonAPI, testAPI, homeworkAPI, studentHomeworkAPI, type Lesson, type Test, type Homework, type LessonStudentStats, type StudentHomeworkAssignment } from '../api/client'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,6 +22,14 @@ const editAnnouncement = ref('')
 const editingHomeworkMap = ref<Map<number, boolean>>(new Map())
 const editIncorrectCountMap = ref<Map<number, number>>(new Map())
 
+// 여러 숙제 관리를 위한 state
+const lessonHomeworks = ref<Homework[]>([])
+const addHomeworkDialogVisible = ref(false)
+
+// 학생별 숙제 할당을 위한 state
+const studentAssignments = ref<StudentHomeworkAssignment[]>([])
+const bulkAssignHomeworkId = ref<number | undefined>(undefined)
+
 const lessonId = computed(() => Number(route.params.id))
 
 const fetchLesson = async () => {
@@ -32,10 +41,36 @@ const fetchLesson = async () => {
     // Fetch student stats
     const statsResponse = await lessonAPI.getLessonStats(lessonId.value)
     stats.value = statsResponse.data
+
+    // Fetch lesson homeworks
+    await fetchLessonHomeworks()
+
+    // Fetch student assignments
+    await fetchAssignments()
   } catch (error) {
     ElMessage.error('수업 정보를 불러오는데 실패했습니다.')
   } finally {
     loading.value = false
+  }
+}
+
+const fetchLessonHomeworks = async () => {
+  if (!lessonId.value) return
+  try {
+    const response = await lessonAPI.getLessonHomeworks(lessonId.value)
+    lessonHomeworks.value = response.data
+  } catch (error) {
+    ElMessage.error('숙제 목록을 불러오는데 실패했습니다.')
+  }
+}
+
+const fetchAssignments = async () => {
+  if (!lessonId.value) return
+  try {
+    const response = await lessonAPI.getAssignments(lessonId.value)
+    studentAssignments.value = response.data
+  } catch (error) {
+    ElMessage.error('할당 현황을 불러오는데 실패했습니다.')
   }
 }
 
@@ -71,6 +106,12 @@ const openAttachHomeworkDialog = async () => {
   attachHomeworkDialogVisible.value = true
 }
 
+const openAddHomeworkDialog = async () => {
+  await fetchUnattachedHomeworks()
+  selectedHomeworkId.value = undefined
+  addHomeworkDialogVisible.value = true
+}
+
 const handleAttachTest = async () => {
   if (!selectedTestId.value) {
     ElMessage.error('시험을 선택해주세요.')
@@ -101,6 +142,7 @@ const handleAttachHomework = async () => {
     await lessonAPI.attachHomework(lessonId.value, selectedHomeworkId.value)
     ElMessage.success('숙제가 연결되었습니다.')
     attachHomeworkDialogVisible.value = false
+    addHomeworkDialogVisible.value = false
     fetchLesson()
   } catch (error: any) {
     if (error.response?.data?.message) {
@@ -133,10 +175,10 @@ const handleDetachTest = async () => {
   }
 }
 
-const handleDetachHomework = async () => {
+const handleRemoveHomework = async (homeworkId: number) => {
   try {
     await ElMessageBox.confirm(
-      '이 숙제와의 연결을 해제하시겠습니까?',
+      '이 숙제와의 연결을 해제하시겠습니까? 학생별 할당 정보도 함께 삭제됩니다.',
       '확인',
       {
         confirmButtonText: '확인',
@@ -145,12 +187,82 @@ const handleDetachHomework = async () => {
       }
     )
 
-    await lessonAPI.detachHomework(lessonId.value)
+    await lessonAPI.removeHomework(lessonId.value, homeworkId)
     ElMessage.success('숙제 연결이 해제되었습니다.')
     fetchLesson()
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('숙제 연결 해제에 실패했습니다.')
+    }
+  }
+}
+
+const handleBulkAssign = async () => {
+  if (!bulkAssignHomeworkId.value) {
+    ElMessage.error('숙제를 선택해주세요.')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      '선택한 숙제를 모든 학생에게 할당하시겠습니까?',
+      '확인',
+      {
+        confirmButtonText: '확인',
+        cancelButtonText: '취소',
+        type: 'info',
+      }
+    )
+
+    // Create assignments map: studentId -> homeworkId
+    const assignments: Record<number, number> = {}
+    studentAssignments.value.forEach((assignment) => {
+      assignments[assignment.studentId] = bulkAssignHomeworkId.value!
+    })
+
+    await lessonAPI.assignHomeworks(lessonId.value, assignments)
+    ElMessage.success('숙제가 모든 학생에게 할당되었습니다.')
+    fetchAssignments()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('일괄 할당에 실패했습니다.')
+    }
+  }
+}
+
+const saveAssignments = async () => {
+  try {
+    // Create assignments map from current studentAssignments
+    const assignments: Record<number, number> = {}
+    studentAssignments.value.forEach((assignment) => {
+      if (assignment.assignedHomeworkId) {
+        assignments[assignment.studentId] = assignment.assignedHomeworkId
+      }
+    })
+
+    // Check if there are any unassigned students
+    const unassignedCount = studentAssignments.value.filter(
+      (a) => !a.assignedHomeworkId
+    ).length
+
+    if (unassignedCount > 0) {
+      await ElMessageBox.confirm(
+        `${unassignedCount}명의 학생이 아직 숙제를 할당받지 못했습니다. 계속하시겠습니까?`,
+        '경고',
+        {
+          confirmButtonText: '계속',
+          cancelButtonText: '취소',
+          type: 'warning',
+        }
+      )
+    }
+
+    await lessonAPI.assignHomeworks(lessonId.value, assignments)
+    ElMessage.success('숙제 할당이 저장되었습니다.')
+    fetchAssignments()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('숙제 할당 저장에 실패했습니다.')
     }
   }
 }
@@ -216,6 +328,17 @@ const saveHomeworkIncorrectCount = async (studentId: number, homeworkId: number,
   } catch (error) {
     ElMessage.error('숙제 완성도 업데이트에 실패했습니다.')
   }
+}
+
+const calculateAverageCompletion = () => {
+  const assignedStudents = studentAssignments.value.filter(s => s.assignedHomeworkId)
+  if (assignedStudents.length === 0) return 0
+
+  const completedStudents = assignedStudents.filter(s => s.completion !== null && s.completion !== undefined)
+  if (completedStudents.length === 0) return 0
+
+  const total = completedStudents.reduce((sum, s) => sum + (s.completion || 0), 0)
+  return Math.round(total / completedStudents.length)
 }
 
 onMounted(() => {
@@ -360,30 +483,33 @@ onMounted(() => {
             <div style="display: flex; justify-content: space-between; align-items: center">
               <h3 style="margin: 0; font-size: 18px; font-weight: 600">숙제 관리</h3>
               <el-button
-                v-if="!lesson?.homeworkTitle"
                 type="primary"
                 size="small"
-                @click="openAttachHomeworkDialog"
+                @click="openAddHomeworkDialog"
               >
-                숙제 연결
+                숙제 추가
               </el-button>
             </div>
           </template>
 
-          <div v-if="lesson?.homeworkTitle">
-            <div style="margin-bottom: 16px">
-              <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px">
-                {{ lesson.homeworkTitle }}
-              </div>
-              <el-tag type="success">연결됨</el-tag>
-            </div>
-            <div style="display: flex; gap: 12px">
-              <el-button type="warning" @click="handleDetachHomework">
-                숙제 제거
-              </el-button>
-            </div>
+          <div v-if="lessonHomeworks.length > 0">
+            <el-table :data="lessonHomeworks" style="width: 100%">
+              <el-table-column prop="title" label="숙제 제목" min-width="200" />
+              <el-table-column prop="questionCount" label="문제 수" width="100" align="center" />
+              <el-table-column label="작업" width="100" align="center">
+                <template #default="{ row }">
+                  <el-button
+                    type="danger"
+                    size="small"
+                    @click="handleRemoveHomework(row.id)"
+                  >
+                    제거
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
           </div>
-          <el-empty v-else description="연결된 숙제가 없습니다" :image-size="100" />
+          <el-empty v-else description="등록된 숙제가 없습니다" :image-size="100" />
         </el-card>
       </el-col>
     </el-row>
@@ -421,54 +547,127 @@ onMounted(() => {
       </el-table>
     </el-card>
 
-    <!-- Student Homework Completions Section -->
-    <el-card v-if="lesson?.homeworkTitle && stats?.homeworkCompletions" shadow="never" style="margin-top: 24px">
+    <!-- Student Homework Assignment Section -->
+    <el-card v-if="lessonHomeworks.length > 0 && studentAssignments.length > 0" shadow="never" style="margin-top: 24px">
+      <template #header>
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 600">학생별 숙제 할당</h3>
+          <div style="display: flex; gap: 12px; align-items: center">
+            <el-select
+              v-model="bulkAssignHomeworkId"
+              placeholder="일괄 할당할 숙제 선택"
+              style="width: 200px"
+              size="small"
+            >
+              <el-option
+                v-for="hw in lessonHomeworks"
+                :key="hw.id"
+                :label="hw.title"
+                :value="hw.id"
+              />
+            </el-select>
+            <el-button
+              type="primary"
+              size="small"
+              @click="handleBulkAssign"
+              :disabled="!bulkAssignHomeworkId"
+            >
+              일괄 할당
+            </el-button>
+            <el-button
+              type="success"
+              size="small"
+              @click="saveAssignments"
+            >
+              할당 저장
+            </el-button>
+          </div>
+        </div>
+      </template>
+
+      <el-table :data="studentAssignments" style="width: 100%" stripe>
+        <el-table-column prop="studentName" label="학생 이름" min-width="150" />
+        <el-table-column label="할당된 숙제" min-width="250" align="center">
+          <template #default="{ row, $index }">
+            <el-select
+              v-model="studentAssignments[$index].assignedHomeworkId"
+              placeholder="숙제를 선택하세요"
+              style="width: 100%"
+              clearable
+              :disabled="row.incorrectCount !== null && row.incorrectCount !== undefined"
+            >
+              <el-option
+                v-for="hw in lessonHomeworks"
+                :key="hw.id"
+                :label="hw.title"
+                :value="hw.id"
+              />
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column label="제출 상태" width="120" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="row.incorrectCount !== null && row.incorrectCount !== undefined" type="success">
+              제출 완료
+            </el-tag>
+            <el-tag v-else-if="row.assignedHomeworkId" type="warning">
+              미제출
+            </el-tag>
+            <el-tag v-else type="info">
+              미할당
+            </el-tag>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-alert
+        title="제출된 숙제는 다른 숙제로 변경할 수 없습니다"
+        type="info"
+        :closable="false"
+        style="margin-top: 16px"
+        show-icon
+      />
+    </el-card>
+
+    <!-- Student Homework Completion Section -->
+    <el-card v-if="lessonHomeworks.length > 0 && studentAssignments.length > 0" shadow="never" style="margin-top: 24px">
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center">
           <h3 style="margin: 0; font-size: 18px; font-weight: 600">학생별 숙제 완성도</h3>
           <el-tag type="success" size="large">
-            반 평균 완성도: {{ stats.homeworkAverage?.toFixed(1) }}%
+            평균 완성도: {{ calculateAverageCompletion() }}%
           </el-tag>
         </div>
       </template>
 
-      <el-table :data="stats.homeworkCompletions" style="width: 100%" stripe>
-        <el-table-column prop="studentName" label="학생 이름" min-width="80" />
+      <el-table :data="studentAssignments.filter(s => s.assignedHomeworkId)" style="width: 100%" stripe>
+        <el-table-column prop="studentName" label="학생 이름" min-width="120" />
+        <el-table-column prop="assignedHomeworkTitle" label="할당된 숙제" min-width="200" />
         <el-table-column label="오답 개수" width="180" align="center">
           <template #default="{ row }">
-            <!-- Editing mode -->
             <div v-if="editingHomeworkMap.get(row.studentId)" style="display: flex; align-items: center; gap: 8px; justify-content: center">
               <el-input-number
                 :model-value="editIncorrectCountMap.get(row.studentId)"
                 @update:model-value="(val: number) => editIncorrectCountMap.set(row.studentId, val)"
                 :min="0"
-                :max="row.totalQuestions"
                 size="small"
                 style="width: 100px"
               />
-              <span style="color: #909399">/ {{ row.totalQuestions }}</span>
             </div>
-            <!-- View mode -->
             <div v-else>
-              <span v-if="row.completed" style="font-weight: 600">
-                {{ row.incorrectCount }} / {{ row.totalQuestions }}
+              <span v-if="row.incorrectCount !== null && row.incorrectCount !== undefined" style="font-weight: 600">
+                {{ row.incorrectCount }}
               </span>
               <el-tag v-else type="info">미완성</el-tag>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="완성도" width="150" align="center">
+        <el-table-column label="완성도" width="180" align="center">
           <template #default="{ row }">
-            <div v-if="row.completed || editingHomeworkMap.get(row.studentId)" style="display: flex; align-items: center; gap: 12px">
+            <div v-if="row.completion !== null && row.completion !== undefined || editingHomeworkMap.get(row.studentId)" style="display: flex; align-items: center; gap: 12px">
               <el-progress
-                :percentage="editingHomeworkMap.get(row.studentId)
-                  ? Math.round(((row.totalQuestions - (editIncorrectCountMap.get(row.studentId) || 0)) / row.totalQuestions) * 100)
-                  : (row.completion || 0)"
-                :color="(editingHomeworkMap.get(row.studentId)
-                  ? Math.round(((row.totalQuestions - (editIncorrectCountMap.get(row.studentId) || 0)) / row.totalQuestions) * 100)
-                  : (row.completion || 0)) >= 80 ? '#67c23a' : (editingHomeworkMap.get(row.studentId)
-                  ? Math.round(((row.totalQuestions - (editIncorrectCountMap.get(row.studentId) || 0)) / row.totalQuestions) * 100)
-                  : (row.completion || 0)) >= 50 ? '#e6a23c' : '#f56c6c'"
+                :percentage="row.completion || 0"
+                :color="(row.completion || 0) >= 80 ? '#67c23a' : (row.completion || 0) >= 50 ? '#e6a23c' : '#f56c6c'"
                 style="flex: 1"
               />
             </div>
@@ -478,7 +677,7 @@ onMounted(() => {
         <el-table-column label="작업" width="160" align="center">
           <template #default="{ row }">
             <div v-if="editingHomeworkMap.get(row.studentId)" style="display: flex; gap: 4px; justify-content: center">
-              <el-button type="primary" size="small" @click="saveHomeworkIncorrectCount(row.studentId, lesson!.homeworkId!, row.totalQuestions)">
+              <el-button type="primary" size="small" @click="saveHomeworkIncorrectCount(row.studentId, row.assignedHomeworkId!, 100)">
                 저장
               </el-button>
               <el-button size="small" @click="cancelEditingHomework(row.studentId)">
@@ -526,8 +725,8 @@ onMounted(() => {
       </template>
     </el-dialog>
 
-    <!-- Attach Homework Dialog -->
-    <el-dialog v-model="attachHomeworkDialogVisible" title="숙제 연결" width="500px">
+    <!-- Add Homework Dialog -->
+    <el-dialog v-model="addHomeworkDialogVisible" title="숙제 추가" width="500px">
       <el-form label-width="80px">
         <el-form-item label="숙제 선택">
           <el-select v-model="selectedHomeworkId" placeholder="숙제를 선택하세요" style="width: 100%">
@@ -541,20 +740,20 @@ onMounted(() => {
         </el-form-item>
         <el-alert
           v-if="unattachedHomeworks.length === 0"
-          title="연결 가능한 숙제가 없습니다"
+          title="추가 가능한 숙제가 없습니다"
           type="info"
           :closable="false"
           show-icon
         />
       </el-form>
       <template #footer>
-        <el-button @click="attachHomeworkDialogVisible = false">취소</el-button>
+        <el-button @click="addHomeworkDialogVisible = false">취소</el-button>
         <el-button
           type="primary"
           @click="handleAttachHomework"
           :disabled="unattachedHomeworks.length === 0"
         >
-          연결
+          추가
         </el-button>
       </template>
     </el-dialog>

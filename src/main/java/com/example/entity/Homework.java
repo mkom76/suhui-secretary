@@ -11,6 +11,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "homeworks")
@@ -44,9 +46,13 @@ public class Homework {
     @JoinColumn(name = "class_id", nullable = false)
     private AcademyClass academyClass;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id")
     private Lesson lesson;
+
+    @OneToMany(mappedBy = "homework", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<StudentHomework> studentHomeworks = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

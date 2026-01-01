@@ -11,5 +11,6 @@ import java.util.Optional;
 public interface StudentHomeworkRepository extends JpaRepository<StudentHomework, Long> {
     List<StudentHomework> findByStudentId(Long studentId);
     List<StudentHomework> findByHomeworkId(Long homeworkId);
+    List<StudentHomework> findByHomeworkIdIn(List<Long> homeworkIds);
     Optional<StudentHomework> findByStudentIdAndHomeworkId(Long studentId, Long homeworkId);
 }

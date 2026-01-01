@@ -1,7 +1,9 @@
 package com.example.controller;
 
+import com.example.dto.HomeworkDto;
 import com.example.dto.LessonDto;
 import com.example.dto.LessonStudentStatsDto;
+import com.example.dto.StudentHomeworkAssignmentDto;
 import com.example.service.LessonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/lessons")
@@ -58,9 +61,29 @@ public class LessonController {
         return ResponseEntity.ok(lessonService.detachTest(lessonId));
     }
 
-    @DeleteMapping("/{lessonId}/homework")
-    public ResponseEntity<LessonDto> detachHomework(@PathVariable Long lessonId) {
-        return ResponseEntity.ok(lessonService.detachHomework(lessonId));
+    @DeleteMapping("/{lessonId}/homeworks/{homeworkId}")
+    public ResponseEntity<LessonDto> removeHomework(
+            @PathVariable Long lessonId,
+            @PathVariable Long homeworkId) {
+        return ResponseEntity.ok(lessonService.removeHomework(lessonId, homeworkId));
+    }
+
+    @GetMapping("/{lessonId}/homeworks")
+    public ResponseEntity<List<HomeworkDto>> getLessonHomeworks(@PathVariable Long lessonId) {
+        return ResponseEntity.ok(lessonService.getLessonHomeworks(lessonId));
+    }
+
+    @PostMapping("/{lessonId}/assign-homeworks")
+    public ResponseEntity<Void> assignHomeworksToStudents(
+            @PathVariable Long lessonId,
+            @RequestBody Map<Long, Long> assignments) {
+        lessonService.assignHomeworksToStudents(lessonId, assignments);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{lessonId}/assignments")
+    public ResponseEntity<List<StudentHomeworkAssignmentDto>> getAssignments(@PathVariable Long lessonId) {
+        return ResponseEntity.ok(lessonService.getAssignments(lessonId));
     }
 
     @GetMapping("/student/{studentId}")

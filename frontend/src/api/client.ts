@@ -96,6 +96,8 @@ interface StudentHomework {
   studentName?: string;
   homeworkId?: number;
   homeworkTitle?: string;
+  questionCount?: number; // 전체 문제 수
+  dueDate?: string; // 제출 기한
   incorrectCount?: number; // 오답 개수
   completion?: number; // 완성도 (계산된 값, 0-100)
   createdAt?: string;
@@ -232,6 +234,15 @@ export interface StudentHomeworkCompletion {
   totalQuestions: number;
 }
 
+export interface StudentHomeworkAssignment {
+  studentId: number;
+  studentName: string;
+  assignedHomeworkId?: number;
+  assignedHomeworkTitle?: string;
+  incorrectCount?: number;
+  completion?: number;
+}
+
 // Lessons API
 export const lessonAPI = {
   getLessons: (params?: any) => client.get<{ content: Lesson[] }>('/lessons', { params }),
@@ -242,11 +253,19 @@ export const lessonAPI = {
   attachTest: (lessonId: number, testId: number) => client.put(`/lessons/${lessonId}/test/${testId}`),
   attachHomework: (lessonId: number, homeworkId: number) => client.put(`/lessons/${lessonId}/homework/${homeworkId}`),
   detachTest: (lessonId: number) => client.delete(`/lessons/${lessonId}/test`),
-  detachHomework: (lessonId: number) => client.delete(`/lessons/${lessonId}/homework`),
   deleteLesson: (id: number) => client.delete(`/lessons/${id}`),
   getLessonStats: (lessonId: number) => client.get<LessonStudentStats>(`/lessons/${lessonId}/stats`),
   updateLessonContent: (lessonId: number, commonFeedback: string, announcement: string) =>
     client.put<Lesson>(`/lessons/${lessonId}/content`, { commonFeedback, announcement }),
+
+  // 새로운 숙제 관리 API
+  getLessonHomeworks: (lessonId: number) => client.get<Homework[]>(`/lessons/${lessonId}/homeworks`),
+  removeHomework: (lessonId: number, homeworkId: number) => client.delete(`/lessons/${lessonId}/homeworks/${homeworkId}`),
+
+  // 숙제 할당 API
+  assignHomeworks: (lessonId: number, assignments: Record<number, number>) =>
+    client.post(`/lessons/${lessonId}/assign-homeworks`, assignments),
+  getAssignments: (lessonId: number) => client.get<StudentHomeworkAssignment[]>(`/lessons/${lessonId}/assignments`),
 };
 
 // Auth API
@@ -307,4 +326,24 @@ export const dailyFeedbackAPI = {
 
 export default client;
 
-export type { Academy, AcademyClass, Student, Test, Question, Submission, Homework, StudentHomework, Lesson, LoginDto, AuthResponse, DailyFeedback, HomeworkSummary, TestFeedback, QuestionAccuracy };
+export type {
+  Academy,
+  AcademyClass,
+  Student,
+  Test,
+  Question,
+  Submission,
+  Homework,
+  StudentHomework,
+  Lesson,
+  LoginDto,
+  AuthResponse,
+  DailyFeedback,
+  HomeworkSummary,
+  TestFeedback,
+  QuestionAccuracy,
+  StudentHomeworkAssignment,
+  LessonStudentStats,
+  StudentTestScore,
+  StudentHomeworkCompletion
+};
