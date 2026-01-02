@@ -127,18 +127,6 @@ const handleTeacherLogin = async () => {
                 </el-button>
               </el-form-item>
             </el-form>
-
-            <el-alert
-              type="info"
-              :closable="false"
-              style="margin-top: 16px"
-            >
-              <template #title>
-                <div style="font-size: 12px">
-                  <strong>테스트 계정:</strong> ID: 1, PIN: 1111
-                </div>
-              </template>
-            </el-alert>
           </el-tab-pane>
 
           <!-- Teacher Login Tab -->
@@ -171,18 +159,6 @@ const handleTeacherLogin = async () => {
                 </el-button>
               </el-form-item>
             </el-form>
-
-            <el-alert
-              type="info"
-              :closable="false"
-              style="margin-top: 16px"
-            >
-              <template #title>
-                <div style="font-size: 12px">
-                  <strong>테스트 계정:</strong> ID: suhui, PIN: 123456
-                </div>
-              </template>
-            </el-alert>
           </el-tab-pane>
         </el-tabs>
       </el-card>

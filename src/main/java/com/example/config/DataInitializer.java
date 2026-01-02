@@ -20,7 +20,7 @@ import java.util.List;
 public class DataInitializer {
 
     @Bean
-    // @Profile("!prod") // 일시적으로 prod에서도 더미 데이터 생성 (런칭 전 다시 활성화 필요)
+    @Profile("local") // Only run in local environment (NOT in production)
     CommandLineRunner initDatabase(
             AcademyRepository academyRepository,
             AcademyClassRepository academyClassRepository,
