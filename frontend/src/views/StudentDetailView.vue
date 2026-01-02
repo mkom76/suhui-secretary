@@ -400,6 +400,7 @@ onMounted(() => {
           <div style="text-align: center; padding: 20px 0">
             <el-avatar :size="80" :icon="UserFilled" style="margin-bottom: 16px" />
             <h2 style="margin: 0 0 8px; font-size: 24px; font-weight: 600">{{ student?.name }}</h2>
+            <el-tag type="info" size="small">ID: {{ student?.id }}</el-tag>
 
             <div style="margin-top: 24px; text-align: left">
               <div style="padding: 12px 0; border-bottom: 1px solid #ebeef5">

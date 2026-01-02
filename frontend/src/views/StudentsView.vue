@@ -191,12 +191,18 @@ onMounted(() => {
 
     <!-- Students Table -->
     <el-card shadow="never">
-      <el-table 
-        :data="tableData" 
+      <el-table
+        :data="tableData"
         v-loading="loading"
         style="width: 100%"
         stripe
       >
+        <el-table-column prop="id" label="ID" width="80" align="center">
+          <template #default="{ row }">
+            <el-tag type="info" size="small">{{ row.id }}</el-tag>
+          </template>
+        </el-table-column>
+
         <el-table-column prop="name" label="학생명" min-width="120">
           <template #default="{ row }">
             <div
