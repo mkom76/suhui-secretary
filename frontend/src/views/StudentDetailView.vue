@@ -156,16 +156,9 @@ const minScore = computed(() => {
   return Math.min(...submissions.value.map(s => s.totalScore))
 })
 
-// 제출 기한이 지난 숙제만 필터링 (통계 계산용)
+// incorrect_count가 null이 아닌 숙제만 필터링 (통계 계산용)
 const duePastHomeworks = computed(() => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // 오늘 날짜의 00:00:00으로 설정
-
-  return studentHomeworks.value.filter(sh => {
-    if (!sh.dueDate) return true // dueDate가 없으면 포함
-    const dueDate = new Date(sh.dueDate)
-    return dueDate < today // 제출 기한이 오늘 이전인 것만 포함
-  })
+  return studentHomeworks.value.filter(sh => sh.incorrectCount !== null && sh.incorrectCount !== undefined)
 })
 
 // 숙제 통계
@@ -191,6 +184,28 @@ const minCompletion = computed(() => {
 const totalIncorrectCount = computed(() => {
   return duePastHomeworks.value.reduce((sum, sh) => sum + (sh.incorrectCount || 0), 0)
 })
+
+// 완성도에 따른 색상 계산
+const getCompletionColor = (percentage: number) => {
+  if (percentage >= 90) return '#67c23a' // 초록 - 우수
+  if (percentage >= 80) return '#95d475' // 연두 - 양호
+  if (percentage >= 70) return '#e6a23c' // 노랑 - 보통
+  if (percentage >= 60) return '#f39c12' // 주황 - 주의
+  return '#f56c6c' // 빨강 - 미흡
+}
+
+const getCompletionBgColor = (percentage: number) => {
+  if (percentage >= 90) return '#f0fdf4' // 초록 배경
+  if (percentage >= 80) return '#f0fdf4' // 연두 배경
+  if (percentage >= 70) return '#fffbeb' // 노랑 배경
+  if (percentage >= 60) return '#fef3e2' // 주황 배경
+  return '#fef2f2' // 빨강 배경
+}
+
+const averageCompletionColor = computed(() => getCompletionColor(averageCompletion.value))
+const averageCompletionBgColor = computed(() => getCompletionBgColor(averageCompletion.value))
+const minCompletionColor = computed(() => getCompletionColor(minCompletion.value))
+const minCompletionBgColor = computed(() => getCompletionBgColor(minCompletion.value))
 
 // 모달 열기
 const openChartModal = () => {
@@ -602,24 +617,24 @@ onMounted(() => {
 
               <el-row :gutter="16">
                 <el-col :xs="12" :sm="12" :md="12">
-                  <div style="padding: 10px; background: #f0fdf4; border-radius: 8px; text-align: center">
+                  <div :style="{ padding: '10px', background: averageCompletionBgColor, borderRadius: '8px', textAlign: 'center', transition: 'background 0.3s' }">
                     <div style="color: #909399; font-size: 14px; margin-bottom: 12px">평균 완성도</div>
                     <el-progress
                       type="circle"
                       :percentage="averageCompletion"
-                      :color="averageCompletion >= 80 ? '#67c23a' : averageCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
+                      :color="averageCompletionColor"
                       :width="progressSize"
                       :stroke-width="progressStrokeWidth"
                     />
                   </div>
                 </el-col>
                 <el-col :xs="12" :sm="12" :md="12">
-                  <div style="padding: 10px; background: #fffbeb; border-radius: 8px; text-align: center">
+                  <div :style="{ padding: '10px', background: minCompletionBgColor, borderRadius: '8px', textAlign: 'center', transition: 'background 0.3s' }">
                     <div style="color: #909399; font-size: 14px; margin-bottom: 12px">최저 완성도</div>
                     <el-progress
                       type="circle"
                       :percentage="minCompletion"
-                      :color="minCompletion >= 80 ? '#67c23a' : minCompletion >= 60 ? '#e6a23c' : '#f56c6c'"
+                      :color="minCompletionColor"
                       :width="progressSize"
                       :stroke-width="progressStrokeWidth"
                     />
