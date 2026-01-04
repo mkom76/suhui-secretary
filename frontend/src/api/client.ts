@@ -203,8 +203,8 @@ export const homeworkAPI = {
 export const studentHomeworkAPI = {
   getByStudentId: (studentId: number) => client.get(`/student-homeworks/student/${studentId}`),
   getByHomeworkId: (homeworkId: number) => client.get(`/student-homeworks/homework/${homeworkId}`),
-  updateIncorrectCount: (studentId: number, homeworkId: number, incorrectCount: number) =>
-    client.put(`/student-homeworks/student/${studentId}/homework/${homeworkId}`, { incorrectCount }),
+  updateIncorrectCount: (studentId: number, homeworkId: number, incorrectCount: number, unsolvedCount: number) =>
+    client.put(`/student-homeworks/student/${studentId}/homework/${homeworkId}`, { incorrectCount, unsolvedCount }),
   delete: (studentId: number, homeworkId: number) =>
     client.delete(`/student-homeworks/student/${studentId}/homework/${homeworkId}`),
 };

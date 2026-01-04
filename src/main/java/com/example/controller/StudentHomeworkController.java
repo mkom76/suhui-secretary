@@ -31,7 +31,8 @@ public class StudentHomeworkController {
             @PathVariable Long homeworkId,
             @RequestBody Map<String, Integer> request) {
         Integer incorrectCount = request.get("incorrectCount");
-        return ResponseEntity.ok(studentHomeworkService.updateIncorrectCount(studentId, homeworkId, incorrectCount));
+        Integer unsolvedCount = request.get("unsolvedCount");
+        return ResponseEntity.ok(studentHomeworkService.updateIncorrectCount(studentId, homeworkId, incorrectCount, unsolvedCount));
     }
 
     @DeleteMapping("/student/{studentId}/homework/{homeworkId}")

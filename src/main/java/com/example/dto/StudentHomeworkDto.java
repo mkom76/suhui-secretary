@@ -22,6 +22,7 @@ public class StudentHomeworkDto {
     private Integer questionCount; // 전체 문제 수
     private LocalDate dueDate; // 제출 기한
     private Integer incorrectCount; // 오답 개수
+    private Integer unsolvedCount; // 미제출(풀지 않은) 문제 개수
     private Integer completion; // 완성도 (계산된 값, 0-100)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -36,6 +37,7 @@ public class StudentHomeworkDto {
                 .questionCount(entity.getHomework().getQuestionCount())
                 .dueDate(entity.getHomework().getDueDate())
                 .incorrectCount(entity.getIncorrectCount())
+                .unsolvedCount(entity.getUnsolvedCount())
                 .completion(entity.getCompletion())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())

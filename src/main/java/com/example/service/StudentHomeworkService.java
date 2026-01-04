@@ -34,7 +34,7 @@ public class StudentHomeworkService {
                 .collect(Collectors.toList());
     }
 
-    public StudentHomeworkDto updateIncorrectCount(Long studentId, Long homeworkId, Integer incorrectCount) {
+    public StudentHomeworkDto updateIncorrectCount(Long studentId, Long homeworkId, Integer incorrectCount, Integer unsolvedCount) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
         Homework homework = homeworkRepository.findById(homeworkId)
@@ -48,6 +48,7 @@ public class StudentHomeworkService {
                         .build());
 
         studentHomework.setIncorrectCount(incorrectCount);
+        studentHomework.setUnsolvedCount(unsolvedCount);
         studentHomework = studentHomeworkRepository.save(studentHomework);
 
         return StudentHomeworkDto.from(studentHomework);

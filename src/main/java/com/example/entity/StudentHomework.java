@@ -34,6 +34,9 @@ public class StudentHomework {
     @Column(name = "incorrect_count")
     private Integer incorrectCount; // 오답 개수 (null = 미제출)
 
+    @Column(name = "unsolved_count")
+    private Integer unsolvedCount; // 미제출(풀지 않은) 문제 개수
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -44,7 +47,7 @@ public class StudentHomework {
 
     // 완성도 계산 (0-100), null이면 미제출 상태
     public Integer getCompletion() {
-        // 미제출 상태
+        // 미제출 상태 (incorrectCount가 null이면 아직 채점 안됨)
         if (incorrectCount == null) {
             return null;
         }
@@ -55,7 +58,12 @@ public class StudentHomework {
 
         int total = homework.getQuestionCount();
         int incorrect = incorrectCount;
+        int unsolved = unsolvedCount != null ? unsolvedCount : 0;
 
-        return (int) Math.round(((double)(total - incorrect) / total) * 100);
+        // 완성도 = (전체 - 오답 - 미제출) / 전체 * 100
+        int correct = total - incorrect - unsolved;
+        if (correct < 0) correct = 0; // 음수 방지
+
+        return (int) Math.round(((double) correct / total) * 100);
     }
 }

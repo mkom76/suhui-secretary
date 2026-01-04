@@ -242,8 +242,16 @@ onMounted(() => {
                       style="flex: 1"
                     />
                   </div>
-                  <div v-if="feedback.todayHomework.incorrectCount !== null && feedback.todayHomework.incorrectCount !== undefined" style="margin-top: 8px; color: #909399; font-size: 13px">
-                    오답 개수: {{ feedback.todayHomework.incorrectCount }} / {{ feedback.todayHomework.questionCount }}
+                  <div v-if="feedback.todayHomework.incorrectCount !== null && feedback.todayHomework.incorrectCount !== undefined" style="margin-top: 8px; font-size: 13px">
+                    <div style="color: #f56c6c; font-weight: 500">
+                      오답 개수: {{ feedback.todayHomework.incorrectCount }}개
+                    </div>
+                    <div style="color: #e6a23c; font-weight: 500; margin-top: 4px">
+                      미제출 개수: {{ feedback.todayHomework.unsolvedCount || 0 }}개
+                    </div>
+                    <div style="color: #909399; margin-top: 4px">
+                      전체: {{ feedback.todayHomework.questionCount }}문제
+                    </div>
                   </div>
                 </el-descriptions-item>
                 <el-descriptions-item label="마감일" v-if="feedback.todayHomework.dueDate">

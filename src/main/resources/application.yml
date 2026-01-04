@@ -1,10 +1,16 @@
 spring:
   application:
     name: suhui-scretary
-  
+
   profiles:
     active: local
-  
+
+  data:
+    web:
+      pageable:
+        default-page-size: 1000  # 기본 페이지 크기 증가
+        max-page-size: 10000     # 최대 페이지 크기
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
   

@@ -1,4 +1,10 @@
 spring:
+  data:
+    web:
+      pageable:
+        default-page-size: 1000  # 기본 페이지 크기 증가
+        max-page-size: 10000     # 최대 페이지 크기
+
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=true&requireSSL=true&serverTimezone=Asia/Seoul
     username: ${DB_USERNAME}
@@ -19,8 +25,8 @@ spring:
       timeout: 30m
       cookie:
         http-only: true
-        secure: false  # IP 사용 시 false (도메인 연결 후 true로 변경)
-        same-site: lax  # IP 사용 시 lax (도메인 연결 후 strict로 변경)
+        secure: true  # HTTPS 적용 후 true
+        same-site: strict  # HTTPS 적용 후 strict
 
 server:
   port: 8080

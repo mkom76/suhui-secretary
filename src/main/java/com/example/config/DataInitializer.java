@@ -90,89 +90,65 @@ public class DataInitializer {
 
             log.info("Created {} classes", 6);
 
-            // 3. 학생 데이터 생성
-            Student student1 = new Student();
-            student1.setName("김민준");
-            student1.setGrade("고1");
-            student1.setSchool("서울고등학교");
-            student1.setAcademy(academy1);
-            student1.setAcademyClass(class1);
-            student1.setPin("1111");
-            student1 = studentRepository.save(student1);
+            // 3. 학생 데이터 생성 (30명)
+            List<Student> students = new ArrayList<>();
 
-            Student student2 = new Student();
-            student2.setName("이서연");
-            student2.setGrade("고1");
-            student2.setSchool("서울고등학교");
-            student2.setAcademy(academy1);
-            student2.setAcademyClass(class1);
-            student2.setPin("2222");
-            student2 = studentRepository.save(student2);
+            // Class 1 (고1 수학 기본반) - 5명
+            students.add(createStudent("김민준", "고1", "서울고등학교", academy1, class1, "1111"));
+            students.add(createStudent("이서연", "고1", "서울고등학교", academy1, class1, "1112"));
+            students.add(createStudent("박도현", "고1", "강남고등학교", academy1, class1, "1113"));
+            students.add(createStudent("최수아", "고1", "서울고등학교", academy1, class1, "1114"));
+            students.add(createStudent("정하윤", "고1", "강남고등학교", academy1, class1, "1115"));
 
-            Student student3 = new Student();
-            student3.setName("박지훈");
-            student3.setGrade("고1");
-            student3.setSchool("강남고등학교");
-            student3.setAcademy(academy1);
-            student3.setAcademyClass(class2);
-            student3.setPin("3333");
-            student3 = studentRepository.save(student3);
+            // Class 2 (고1 수학 심화반) - 5명
+            students.add(createStudent("박지훈", "고1", "강남고등학교", academy1, class2, "3333"));
+            students.add(createStudent("강민서", "고1", "대치고등학교", academy1, class2, "2221"));
+            students.add(createStudent("조은우", "고1", "서울고등학교", academy1, class2, "2222"));
+            students.add(createStudent("윤채원", "고1", "강남고등학교", academy1, class2, "2223"));
+            students.add(createStudent("신지호", "고1", "대치고등학교", academy1, class2, "2224"));
 
-            Student student4 = new Student();
-            student4.setName("최유진");
-            student4.setGrade("고2");
-            student4.setSchool("강남고등학교");
-            student4.setAcademy(academy1);
-            student4.setAcademyClass(class3);
-            student4.setPin("4444");
-            student4 = studentRepository.save(student4);
+            // Class 3 (고2 수학 기본반) - 5명
+            students.add(createStudent("최유진", "고2", "강남고등학교", academy1, class3, "4444"));
+            students.add(createStudent("정도윤", "고2", "대치고등학교", academy1, class3, "5555"));
+            students.add(createStudent("김서준", "고2", "서울고등학교", academy1, class3, "3331"));
+            students.add(createStudent("이예은", "고2", "강남고등학교", academy1, class3, "3332"));
+            students.add(createStudent("박민재", "고2", "대치고등학교", academy1, class3, "3333"));
 
-            Student student5 = new Student();
-            student5.setName("정도윤");
-            student5.setGrade("고2");
-            student5.setSchool("대치고등학교");
-            student5.setAcademy(academy1);
-            student5.setAcademyClass(class3);
-            student5.setPin("5555");
-            student5 = studentRepository.save(student5);
+            // Class 4 (고2 수학 심화반) - 5명
+            students.add(createStudent("강서아", "고2", "대치고등학교", academy2, class4, "6666"));
+            students.add(createStudent("송다은", "고2", "서울고등학교", academy2, class4, "4441"));
+            students.add(createStudent("홍준혁", "고2", "강남고등학교", academy2, class4, "4442"));
+            students.add(createStudent("안소율", "고2", "대치고등학교", academy2, class4, "4443"));
+            students.add(createStudent("임시윤", "고2", "서울고등학교", academy2, class4, "4444"));
 
-            Student student6 = new Student();
-            student6.setName("강서아");
-            student6.setGrade("고2");
-            student6.setSchool("대치고등학교");
-            student6.setAcademy(academy2);
-            student6.setAcademyClass(class4);
-            student6.setPin("6666");
-            student6 = studentRepository.save(student6);
+            // Class 5 (고3 수학 정규반) - 5명
+            students.add(createStudent("윤하은", "고3", "서울고등학교", academy2, class5, "7777"));
+            students.add(createStudent("임준서", "고3", "강남고등학교", academy2, class5, "8888"));
+            students.add(createStudent("장예진", "고3", "대치고등학교", academy2, class5, "5551"));
+            students.add(createStudent("오지안", "고3", "서울고등학교", academy2, class5, "5552"));
+            students.add(createStudent("백현우", "고3", "강남고등학교", academy2, class5, "5553"));
 
-            Student student7 = new Student();
-            student7.setName("윤하은");
-            student7.setGrade("고3");
-            student7.setSchool("서울고등학교");
-            student7.setAcademy(academy2);
-            student7.setAcademyClass(class5);
-            student7.setPin("7777");
-            student7 = studentRepository.save(student7);
+            // Class 6 (고3 수학 특강반) - 5명
+            students.add(createStudent("한지우", "고3", "대치고등학교", academy2, class6, "9999"));
+            students.add(createStudent("서민준", "고3", "서울고등학교", academy2, class6, "6661"));
+            students.add(createStudent("권서연", "고3", "강남고등학교", academy2, class6, "6662"));
+            students.add(createStudent("남주원", "고3", "대치고등학교", academy2, class6, "6663"));
+            students.add(createStudent("문지훈", "고3", "서울고등학교", academy2, class6, "6664"));
 
-            Student student8 = new Student();
-            student8.setName("임준서");
-            student8.setGrade("고3");
-            student8.setSchool("강남고등학교");
-            student8.setAcademy(academy2);
-            student8.setAcademyClass(class5);
-            student8.setPin("8888");
-            student8 = studentRepository.save(student8);
+            students = (List<Student>) studentRepository.saveAll(students);
 
-            Student student9 = new Student();
-            student9.setName("한지우");
-            student9.setGrade("고3");
-            student9.setSchool("대치고등학교");
-            student9.setAcademy(academy2);
-            student9.setAcademyClass(class6);
-            student9.setPin("9999");
-            student9 = studentRepository.save(student9);
+            // 개별 학생 변수 할당 (기존 코드 호환성)
+            Student student1 = students.get(0);
+            Student student2 = students.get(1);
+            Student student3 = students.get(5);
+            Student student4 = students.get(10);
+            Student student5 = students.get(11);
+            Student student6 = students.get(15);
+            Student student7 = students.get(20);
+            Student student8 = students.get(21);
+            Student student9 = students.get(25);
 
-            log.info("Created {} students", 9);
+            log.info("Created {} students", students.size());
 
             // 4. 수업(Lesson) 데이터 생성
             Lesson lesson1 = new Lesson();
@@ -663,7 +639,7 @@ public class DataInitializer {
             log.info("- Teachers: 1");
             log.info("- Academies: 2 (수학 전문)");
             log.info("- Classes: 6 (모두 수학반)");
-            log.info("- Students: 9");
+            log.info("- Students: 30");
             log.info("- Lessons: 8");
             log.info("- Tests: 5 (모두 수학 시험)");
             log.info("- Test Questions: 82");
@@ -672,5 +648,16 @@ public class DataInitializer {
             log.info("- Student Homework Records: 11 (학생별 다른 숙제 할당 예시)");
             log.info("===================================================");
         };
+    }
+
+    private Student createStudent(String name, String grade, String school, Academy academy, AcademyClass academyClass, String pin) {
+        Student student = new Student();
+        student.setName(name);
+        student.setGrade(grade);
+        student.setSchool(school);
+        student.setAcademy(academy);
+        student.setAcademyClass(academyClass);
+        student.setPin(pin);
+        return student;
     }
 }

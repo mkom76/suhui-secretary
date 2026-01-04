@@ -21,6 +21,7 @@ const editCommonFeedback = ref('')
 const editAnnouncement = ref('')
 const editingHomeworkMap = ref<Map<number, boolean>>(new Map())
 const editIncorrectCountMap = ref<Map<number, number>>(new Map())
+const editUnsolvedCountMap = ref<Map<number, number>>(new Map())
 
 // 여러 숙제 관리를 위한 state
 const lessonHomeworks = ref<Homework[]>([])
@@ -298,20 +299,23 @@ const saveContent = async () => {
   }
 }
 
-const startEditingHomework = (studentId: number, currentIncorrectCount: number | undefined) => {
+const startEditingHomework = (studentId: number, currentIncorrectCount: number | undefined, currentUnsolvedCount: number | undefined) => {
   editingHomeworkMap.value.set(studentId, true)
   editIncorrectCountMap.value.set(studentId, currentIncorrectCount || 0)
+  editUnsolvedCountMap.value.set(studentId, currentUnsolvedCount || 0)
 }
 
 const cancelEditingHomework = (studentId: number) => {
   editingHomeworkMap.value.delete(studentId)
   editIncorrectCountMap.value.delete(studentId)
+  editUnsolvedCountMap.value.delete(studentId)
 }
 
 const saveHomeworkIncorrectCount = async (studentId: number, homeworkId: number, totalQuestions: number) => {
   const incorrectCount = editIncorrectCountMap.value.get(studentId)
+  const unsolvedCount = editUnsolvedCountMap.value.get(studentId)
 
-  if (incorrectCount === undefined) return
+  if (incorrectCount === undefined || unsolvedCount === undefined) return
 
   // Validation
   if (incorrectCount < 0 || incorrectCount > totalQuestions) {
@@ -319,11 +323,22 @@ const saveHomeworkIncorrectCount = async (studentId: number, homeworkId: number,
     return
   }
 
+  if (unsolvedCount < 0 || unsolvedCount > totalQuestions) {
+    ElMessage.error(`미제출 개수는 0부터 ${totalQuestions} 사이여야 합니다.`)
+    return
+  }
+
+  if (incorrectCount + unsolvedCount > totalQuestions) {
+    ElMessage.error(`오답 개수와 미제출 개수의 합은 전체 문제 수를 초과할 수 없습니다.`)
+    return
+  }
+
   try {
-    await studentHomeworkAPI.updateIncorrectCount(studentId, homeworkId, incorrectCount)
+    await studentHomeworkAPI.updateIncorrectCount(studentId, homeworkId, incorrectCount, unsolvedCount)
     ElMessage.success('숙제 완성도가 업데이트되었습니다.')
     editingHomeworkMap.value.delete(studentId)
     editIncorrectCountMap.value.delete(studentId)
+    editUnsolvedCountMap.value.delete(studentId)
     fetchLesson()
   } catch (error) {
     ElMessage.error('숙제 완성도 업데이트에 실패했습니다.')
@@ -643,22 +658,44 @@ onMounted(() => {
       <el-table :data="studentAssignments.filter(s => s.assignedHomeworkId)" style="width: 100%" stripe>
         <el-table-column prop="studentName" label="학생 이름" min-width="120" />
         <el-table-column prop="assignedHomeworkTitle" label="할당된 숙제" min-width="200" />
-        <el-table-column label="오답 개수" width="180" align="center">
+        <el-table-column label="오답 개수" width="150" align="center">
           <template #default="{ row }">
-            <div v-if="editingHomeworkMap.get(row.studentId)" style="display: flex; align-items: center; gap: 8px; justify-content: center">
+            <div v-if="editingHomeworkMap.get(row.studentId)">
               <el-input-number
                 :model-value="editIncorrectCountMap.get(row.studentId)"
                 @update:model-value="(val: number) => editIncorrectCountMap.set(row.studentId, val)"
                 :min="0"
                 size="small"
-                style="width: 100px"
+                style="width: 100%"
               />
             </div>
             <div v-else>
-              <span v-if="row.incorrectCount !== null && row.incorrectCount !== undefined" style="font-weight: 600">
-                {{ row.incorrectCount }}
+              <span v-if="row.incorrectCount !== null && row.incorrectCount !== undefined" style="font-weight: 600; color: #f56c6c">
+                {{ row.incorrectCount }}개
               </span>
-              <el-tag v-else type="info">미완성</el-tag>
+              <el-tag v-else type="info" size="small">미완성</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="미제출 개수" width="150" align="center">
+          <template #default="{ row }">
+            <div v-if="editingHomeworkMap.get(row.studentId)">
+              <el-input-number
+                :model-value="editUnsolvedCountMap.get(row.studentId)"
+                @update:model-value="(val: number) => editUnsolvedCountMap.set(row.studentId, val)"
+                :min="0"
+                size="small"
+                style="width: 100%"
+              />
+            </div>
+            <div v-else>
+              <span v-if="row.unsolvedCount !== null && row.unsolvedCount !== undefined" style="font-weight: 600; color: #e6a23c">
+                {{ row.unsolvedCount }}개
+              </span>
+              <span v-else-if="row.incorrectCount !== null && row.incorrectCount !== undefined" style="color: #909399">
+                0개
+              </span>
+              <el-tag v-else type="info" size="small">미완성</el-tag>
             </div>
           </template>
         </el-table-column>
@@ -684,7 +721,7 @@ onMounted(() => {
                 취소
               </el-button>
             </div>
-            <el-button v-else type="primary" size="small" @click="startEditingHomework(row.studentId, row.incorrectCount)">
+            <el-button v-else type="primary" size="small" @click="startEditingHomework(row.studentId, row.incorrectCount, row.unsolvedCount)">
               편집
             </el-button>
           </template>
