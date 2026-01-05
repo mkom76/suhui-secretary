@@ -241,6 +241,7 @@ export interface StudentHomeworkAssignment {
   assignedHomeworkId?: number;
   assignedHomeworkTitle?: string;
   incorrectCount?: number;
+  unsolvedCount?: number;
   completion?: number;
 }
 

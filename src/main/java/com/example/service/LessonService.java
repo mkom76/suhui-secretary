@@ -459,6 +459,7 @@ public class LessonService {
                             .assignedHomeworkId(sh != null ? sh.getHomework().getId() : null)
                             .assignedHomeworkTitle(sh != null ? sh.getHomework().getTitle() : null)
                             .incorrectCount(sh != null ? sh.getIncorrectCount() : null)
+                            .unsolvedCount(sh != null ? sh.getUnsolvedCount() : null)
                             .completion(sh != null ? sh.getCompletion() : null)
                             .build();
                 })
