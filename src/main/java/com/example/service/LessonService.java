@@ -313,6 +313,7 @@ public class LessonService {
                         .studentId(student.getId())
                         .studentName(student.getName())
                         .incorrectCount(studentHomework != null ? studentHomework.getIncorrectCount() : null)
+                        .unsolvedCount(studentHomework != null ? studentHomework.getUnsolvedCount() : null)
                         .completion(studentHomework != null ? studentHomework.getCompletion() : null)
                         .completed(studentHomework != null)
                         .totalQuestions(studentHomework != null ? studentHomework.getHomework().getQuestionCount() : 0)

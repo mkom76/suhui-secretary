@@ -37,6 +37,7 @@ public class LessonStudentStatsDto {
         private Long studentId;
         private String studentName;
         private Integer incorrectCount;
+        private Integer unsolvedCount;
         private Integer completion;
         private Boolean completed;
         private Integer totalQuestions;

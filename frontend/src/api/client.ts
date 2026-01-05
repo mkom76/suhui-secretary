@@ -229,6 +229,7 @@ export interface StudentHomeworkCompletion {
   studentId: number;
   studentName: string;
   incorrectCount?: number;
+  unsolvedCount?: number;
   completion?: number;
   completed: boolean;
   totalQuestions: number;
