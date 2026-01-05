@@ -324,12 +324,12 @@ const saveHomeworkIncorrectCount = async (studentId: number, homeworkId: number,
   }
 
   if (unsolvedCount < 0 || unsolvedCount > totalQuestions) {
-    ElMessage.error(`미제출 개수는 0부터 ${totalQuestions} 사이여야 합니다.`)
+    ElMessage.error(`안 푼 문제는 0부터 ${totalQuestions} 사이여야 합니다.`)
     return
   }
 
   if (incorrectCount + unsolvedCount > totalQuestions) {
-    ElMessage.error(`오답 개수와 미제출 개수의 합은 전체 문제 수를 초과할 수 없습니다.`)
+    ElMessage.error(`오답 개수와 안 푼 문제의 합은 전체 문제 수를 초과할 수 없습니다.`)
     return
   }
 
@@ -677,7 +677,7 @@ onMounted(() => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="미제출 개수" width="150" align="center">
+        <el-table-column label="안 푼 문제" width="150" align="center">
           <template #default="{ row }">
             <div v-if="editingHomeworkMap.get(row.studentId)">
               <el-input-number

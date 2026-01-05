@@ -247,7 +247,7 @@ onMounted(() => {
                       오답 개수: {{ feedback.todayHomework.incorrectCount }}개
                     </div>
                     <div style="color: #e6a23c; font-weight: 500; margin-top: 4px">
-                      미제출 개수: {{ feedback.todayHomework.unsolvedCount || 0 }}개
+                      안 푼 문제: {{ feedback.todayHomework.unsolvedCount || 0 }}개
                     </div>
                     <div style="color: #909399; margin-top: 4px">
                       전체: {{ feedback.todayHomework.questionCount }}문제
