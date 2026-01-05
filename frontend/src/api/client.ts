@@ -298,6 +298,7 @@ export interface HomeworkSummary {
   homeworkTitle: string;
   questionCount: number;
   incorrectCount?: number;
+  unsolvedCount?: number;
   completion?: number;
   dueDate?: string;
 }

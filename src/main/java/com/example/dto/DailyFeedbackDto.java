@@ -30,6 +30,7 @@ public class DailyFeedbackDto {
         private String homeworkTitle;
         private Integer questionCount;
         private Integer incorrectCount; // 오답 개수
+        private Integer unsolvedCount; // 안 푼 문제 개수
         private Integer completion; // 0-100
         private LocalDate dueDate;
     }
