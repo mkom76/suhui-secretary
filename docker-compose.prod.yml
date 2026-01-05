@@ -26,9 +26,7 @@ services:
       start_period: 30s
 
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-mkom76}/suhui-secretary-backend:latest
     container_name: suhui-backend
     restart: unless-stopped
     environment:
@@ -54,9 +52,7 @@ services:
       start_period: 60s
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-mkom76}/suhui-secretary-frontend:latest
     container_name: suhui-frontend
     restart: unless-stopped
     networks:
