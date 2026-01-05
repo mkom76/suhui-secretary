@@ -17,6 +17,11 @@ const studentId = ref<number | null>(null)
 const studentName = ref<string>('')
 const isTeacherView = computed(() => route.params.id !== undefined)
 
+// 피드백 편집 상태
+const isEditingFeedback = ref(false)
+const editedFeedback = ref('')
+const editedAuthorName = ref('')
+
 const { isMobile } = useBreakpoint()
 
 const containerPadding = computed(() => isMobile.value ? '12px' : '24px')
@@ -136,6 +141,58 @@ const getDifficulty = (correctRate: number) => {
   if (correctRate >= 60) return { level: 'medium', text: '보통', color: '#409eff' }
   if (correctRate >= 40) return { level: 'hard', text: '어려움', color: '#e6a23c' }
   return { level: 'very-hard', text: '매우 어려움', color: '#f56c6c' }
+}
+
+const startEditingFeedback = async () => {
+  editedFeedback.value = feedback.value?.instructorFeedback || ''
+  editedAuthorName.value = feedback.value?.feedbackAuthor || ''
+
+  // 작성자 이름이 없으면 현재 사용자 이름 가져오기
+  if (!editedAuthorName.value) {
+    try {
+      const userRes = await authAPI.getCurrentUser()
+      editedAuthorName.value = userRes.data.name || ''
+    } catch (error) {
+      console.error('Failed to get current user')
+    }
+  }
+
+  isEditingFeedback.value = true
+}
+
+const cancelEditingFeedback = () => {
+  isEditingFeedback.value = false
+  editedFeedback.value = ''
+  editedAuthorName.value = ''
+}
+
+const saveFeedback = async () => {
+  if (!editedFeedback.value.trim()) {
+    ElMessage.warning('피드백 내용을 입력해주세요')
+    return
+  }
+
+  if (!selectedLessonId.value || !studentId.value) {
+    ElMessage.error('수업 또는 학생 정보를 찾을 수 없습니다')
+    return
+  }
+
+  try {
+    await dailyFeedbackAPI.updateInstructorFeedback(
+      studentId.value,
+      selectedLessonId.value,
+      editedFeedback.value,
+      editedAuthorName.value
+    )
+
+    ElMessage.success('피드백이 저장되었습니다')
+    isEditingFeedback.value = false
+
+    // 피드백 다시 불러오기
+    await fetchFeedback()
+  } catch (error) {
+    ElMessage.error('피드백 저장에 실패했습니다')
+  }
 }
 
 onMounted(() => {
@@ -404,33 +461,68 @@ onMounted(() => {
 
       <el-card shadow="never">
         <template #header>
-          <div style="display: flex; align-items: center; gap: 8px">
-            <el-icon size="20" color="#f56c6c"><ChatDotRound /></el-icon>
-            <span style="font-weight: 600; font-size: 16px">개별 피드백</span>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <el-icon size="20" color="#f56c6c"><ChatDotRound /></el-icon>
+              <span style="font-weight: 600; font-size: 16px">개별 피드백</span>
+            </div>
+            <el-button
+              v-if="isTeacherView && !isEditingFeedback"
+              type="primary"
+              size="small"
+              @click="startEditingFeedback"
+            >
+              <el-icon style="margin-right: 4px"><Edit /></el-icon>
+              {{ feedback.instructorFeedback ? '편집' : '작성' }}
+            </el-button>
           </div>
         </template>
 
-        <div v-if="feedback.instructorFeedback">
-          <div style="margin-bottom: 12px">
-            <el-tag type="success">{{ feedback.feedbackAuthor || '선생님' }}</el-tag>
-          </div>
-          <div style="
-            background: #f5f7fa;
-            padding: 20px;
-            border-radius: 8px;
-            line-height: 1.8;
-            font-size: 15px;
-            color: #303133;
-            white-space: pre-wrap;
-          ">
-            {{ feedback.instructorFeedback }}
+        <!-- 편집 모드 -->
+        <div v-if="isEditingFeedback">
+          <el-form label-width="80px">
+            <el-form-item label="작성자">
+              <el-input v-model="editedAuthorName" placeholder="선생님 이름" />
+            </el-form-item>
+            <el-form-item label="피드백">
+              <el-input
+                v-model="editedFeedback"
+                type="textarea"
+                :rows="10"
+                placeholder="학생에게 전달할 개별 피드백을 작성하세요..."
+              />
+            </el-form-item>
+          </el-form>
+          <div style="display: flex; gap: 12px; justify-content: flex-end">
+            <el-button @click="cancelEditingFeedback">취소</el-button>
+            <el-button type="primary" @click="saveFeedback">저장</el-button>
           </div>
         </div>
-        <el-empty v-else description="아직 개별 피드백이 없습니다" :image-size="80">
-          <template #image>
-            <el-icon size="80" color="#c0c4cc"><ChatDotRound /></el-icon>
-          </template>
-        </el-empty>
+
+        <!-- 읽기 모드 -->
+        <div v-else>
+          <div v-if="feedback.instructorFeedback">
+            <div style="margin-bottom: 12px">
+              <el-tag type="success">{{ feedback.feedbackAuthor || '선생님' }}</el-tag>
+            </div>
+            <div style="
+              background: #f5f7fa;
+              padding: 20px;
+              border-radius: 8px;
+              line-height: 1.8;
+              font-size: 15px;
+              color: #303133;
+              white-space: pre-wrap;
+            ">
+              {{ feedback.instructorFeedback }}
+            </div>
+          </div>
+          <el-empty v-else description="아직 개별 피드백이 없습니다" :image-size="80">
+            <template #image>
+              <el-icon size="80" color="#c0c4cc"><ChatDotRound /></el-icon>
+            </template>
+          </el-empty>
+        </div>
       </el-card>
     </div>
 

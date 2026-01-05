@@ -10,10 +10,7 @@ import {
   type Submission,
   submissionAPI,
   testAPI,
-  dailyFeedbackAPI,
-  authAPI,
-  type Lesson,
-  lessonAPI
+  authAPI
 } from '../api/client'
 import { useBreakpoint } from '@/composables/useBreakpoint'
 import { useTouchGestures } from '@/composables/useTouchGestures'
@@ -29,20 +26,13 @@ const submissions = ref<Submission[]>([])
 const testStats = ref<Record<number, any>>({})
 const studentHomeworks = ref<StudentHomework[]>([])
 const activeTab = ref('test')
-const lessons = ref<Lesson[]>([])
 
 // 선생님인지 확인
 const isTeacher = computed(() => currentUser.value.role === 'TEACHER')
 
 // 모달 상태
 const chartModalVisible = ref(false)
-const feedbackDialogVisible = ref(false)
 const incompleteHomeworksDialogVisible = ref(false)
-const feedbackForm = ref({
-  lessonId: null as number | null,
-  content: '',
-  authorName: ''
-})
 
 // 반응형 breakpoint
 const { isMobile, isSmallScreen } = useBreakpoint()
@@ -311,61 +301,6 @@ const navigateToTest = (testId: number | undefined) => {
   router.push(`/tests/${testId}`)
 }
 
-const openTodayFeedbackDialog = async () => {
-  try {
-    const currentUser = await authAPI.getCurrentUser()
-    feedbackForm.value.authorName = currentUser.data.name || ''
-
-    // 학생의 반에 속한 레슨 목록 가져오기
-    if (student.value?.classId) {
-      const lessonsRes = await lessonAPI.getLessonsByClass(student.value.classId)
-      lessons.value = lessonsRes.data
-
-      // 오늘 날짜와 가장 가까운 레슨을 기본 선택
-      const today = new Date().toISOString().split('T')[0]
-      const todayLesson = lessons.value.find(l => l.lessonDate === today)
-      if (todayLesson) {
-        feedbackForm.value.lessonId = todayLesson.id || null
-      } else if (lessons.value.length > 0) {
-        // 오늘 레슨이 없으면 가장 최근 레슨 선택
-        feedbackForm.value.lessonId = lessons.value[0].id || null
-      }
-    }
-
-    feedbackDialogVisible.value = true
-  } catch (error) {
-    ElMessage.error('사용자 정보를 불러오는데 실패했습니다')
-  }
-}
-
-const submitTodayFeedback = async () => {
-  if (!feedbackForm.value.content.trim()) {
-    ElMessage.warning('피드백 내용을 입력해주세요')
-    return
-  }
-
-  if (!feedbackForm.value.lessonId) {
-    ElMessage.warning('수업을 선택해주세요')
-    return
-  }
-
-  try {
-    await dailyFeedbackAPI.updateInstructorFeedback(
-      Number(studentId.value),
-      feedbackForm.value.lessonId,
-      feedbackForm.value.content,
-      feedbackForm.value.authorName
-    )
-
-    ElMessage.success('피드백이 저장되었습니다')
-    feedbackDialogVisible.value = false
-    feedbackForm.value.content = ''
-    feedbackForm.value.lessonId = null
-  } catch (error: any) {
-    ElMessage.error('피드백 저장에 실패했습니다')
-  }
-}
-
 onMounted(() => {
   fetchStudentDetail()
 })
@@ -383,10 +318,6 @@ onMounted(() => {
           <span>{{ student?.name || '학생 상세' }}</span>
         </h1>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; align-content: flex-start; justify-content: flex-start; margin: 0; width: 100%">
-          <el-button v-if="isTeacher" type="primary" @click="openTodayFeedbackDialog" style="margin: 0">
-            <el-icon style="margin-right: 8px"><Edit /></el-icon>
-            수업 피드백 작성
-          </el-button>
           <el-button type="success" @click="router.push(isTeacher ? `/students/${studentId}/feedback` : '/student/daily-feedback')" style="margin: 0">
             <el-icon style="margin-right: 8px"><View /></el-icon>
             수업 피드백 보기
@@ -919,43 +850,6 @@ onMounted(() => {
         <div v-if="!isMobile">• 클릭 & 드래그: 차트 이동</div>
         <div>• 초기화 버튼: 원래 크기로 복원</div>
       </div>
-    </el-dialog>
-
-    <!-- 수업 피드백 작성 다이얼로그 -->
-    <el-dialog
-      v-model="feedbackDialogVisible"
-      title="수업 피드백 작성"
-      :width="isMobile ? '95%' : '600px'"
-      :fullscreen="isMobile"
-      :close-on-click-modal="false"
-    >
-      <el-form label-width="100px">
-        <el-form-item label="수업 선택" required>
-          <el-select v-model="feedbackForm.lessonId" placeholder="수업을 선택하세요" style="width: 100%">
-            <el-option
-              v-for="lesson in lessons"
-              :key="lesson.id"
-              :label="`${lesson.lessonDate} - ${lesson.testTitle || lesson.homeworkTitle || '수업'}`"
-              :value="lesson.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="작성자">
-          <el-input v-model="feedbackForm.authorName" placeholder="선생님 이름" />
-        </el-form-item>
-        <el-form-item label="피드백 내용">
-          <el-input
-            v-model="feedbackForm.content"
-            type="textarea"
-            :rows="10"
-            placeholder="수업에 대한 피드백을 작성하세요..."
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="feedbackDialogVisible = false">취소</el-button>
-        <el-button type="primary" @click="submitTodayFeedback">저장</el-button>
-      </template>
     </el-dialog>
 
     <!-- 미완성 숙제 목록 다이얼로그 -->
