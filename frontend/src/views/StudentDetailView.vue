@@ -318,9 +318,9 @@ onMounted(() => {
           <span>{{ student?.name || '학생 상세' }}</span>
         </h1>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; align-content: flex-start; justify-content: flex-start; margin: 0; width: 100%">
-          <el-button type="success" @click="router.push(isTeacher ? `/students/${studentId}/feedback` : '/student/daily-feedback')" style="margin: 0">
-            <el-icon style="margin-right: 8px"><View /></el-icon>
-            수업 피드백 보기
+          <el-button type="primary" @click="router.push(isTeacher ? `/students/${studentId}/feedback` : '/student/daily-feedback')" style="margin: 0">
+            <el-icon style="margin-right: 8px"><ChatLineSquare /></el-icon>
+            수업 피드백
           </el-button>
           <el-button @click="goBack" :icon="ArrowLeft" style="margin: 0">
             {{ isTeacher ? '목록으로' : '대시보드로' }}
