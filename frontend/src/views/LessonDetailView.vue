@@ -656,9 +656,8 @@ onMounted(() => {
       </template>
 
       <el-table :data="studentAssignments.filter(s => s.assignedHomeworkId)" style="width: 100%" stripe>
-        <el-table-column prop="studentName" label="학생 이름" min-width="120" />
-        <el-table-column prop="assignedHomeworkTitle" label="할당된 숙제" min-width="200" />
-        <el-table-column label="오답 개수" width="150" align="center">
+        <el-table-column prop="studentName" label="학생 이름" min-width="80" />
+        <el-table-column label="오답 개수" width="100" align="center">
           <template #default="{ row }">
             <div v-if="editingHomeworkMap.get(row.studentId)">
               <el-input-number
@@ -677,7 +676,7 @@ onMounted(() => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="안 푼 문제" width="150" align="center">
+        <el-table-column label="안 푼 문제" width="100" align="center">
           <template #default="{ row }">
             <div v-if="editingHomeworkMap.get(row.studentId)">
               <el-input-number
@@ -699,7 +698,7 @@ onMounted(() => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="완성도" width="180" align="center">
+        <el-table-column label="완성도" width="150" align="center">
           <template #default="{ row }">
             <div v-if="row.completion !== null && row.completion !== undefined || editingHomeworkMap.get(row.studentId)" style="display: flex; align-items: center; gap: 12px">
               <el-progress
@@ -711,7 +710,7 @@ onMounted(() => {
             <el-tag v-else type="info">미제출</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="작업" width="160" align="center">
+        <el-table-column label="작업" width="120" align="center">
           <template #default="{ row }">
             <div v-if="editingHomeworkMap.get(row.studentId)" style="display: flex; gap: 4px; justify-content: center">
               <el-button type="primary" size="small" @click="saveHomeworkIncorrectCount(row.studentId, row.assignedHomeworkId!, 100)">
@@ -726,6 +725,7 @@ onMounted(() => {
             </el-button>
           </template>
         </el-table-column>
+        <el-table-column prop="assignedHomeworkTitle" label="할당된 숙제" min-width="200" />
       </el-table>
     </el-card>
 
