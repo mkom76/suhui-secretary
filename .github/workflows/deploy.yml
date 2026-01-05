@@ -83,7 +83,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/suhui/suhui-secretary/suhui-secretar
+            cd /home/suhui/suhui-secretary/suhui-secretary
 
             # Pull latest code
             git pull origin main
