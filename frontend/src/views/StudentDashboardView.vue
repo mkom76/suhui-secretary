@@ -123,6 +123,10 @@ onMounted(() => {
             <el-icon style="margin-right: 8px"><Document /></el-icon>
             수업 피드백
           </el-button>
+          <el-button type="warning" @click="$router.push('/student/clinic')" style="margin: 0">
+            <el-icon style="margin-right: 8px"><MagicStick /></el-icon>
+            클리닉 신청
+          </el-button>
         </div>
       </div>
     </el-card>

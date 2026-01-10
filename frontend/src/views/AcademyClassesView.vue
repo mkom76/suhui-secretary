@@ -42,9 +42,19 @@ const fetchAcademies = async () => {
   }
 }
 
+const dayOfWeekOptions = [
+  { label: '월요일', value: 'MONDAY' },
+  { label: '화요일', value: 'TUESDAY' },
+  { label: '수요일', value: 'WEDNESDAY' },
+  { label: '목요일', value: 'THURSDAY' },
+  { label: '금요일', value: 'FRIDAY' },
+  { label: '토요일', value: 'SATURDAY' },
+  { label: '일요일', value: 'SUNDAY' }
+]
+
 const openAddDialog = () => {
   editMode.value = false
-  currentClass.value = { name: '', academyId: undefined }
+  currentClass.value = { name: '', academyId: undefined, clinicDayOfWeek: undefined, clinicTime: undefined }
   dialogVisible.value = true
 }
 
@@ -170,7 +180,7 @@ onMounted(() => {
       :title="editMode ? '반 수정' : '반 추가'"
       width="500px"
     >
-      <el-form :model="currentClass" label-width="100px">
+      <el-form :model="currentClass" label-width="120px">
         <el-form-item label="학원">
           <el-select
             v-model="currentClass.academyId"
@@ -187,6 +197,34 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="반명">
           <el-input v-model="currentClass.name" placeholder="반명을 입력하세요" />
+        </el-form-item>
+        <el-divider content-position="left">
+          <span style="color: #909399; font-size: 14px">클리닉 설정</span>
+        </el-divider>
+        <el-form-item label="클리닉 요일">
+          <el-select
+            v-model="currentClass.clinicDayOfWeek"
+            placeholder="요일 선택 (선택사항)"
+            style="width: 100%"
+            clearable
+          >
+            <el-option
+              v-for="option in dayOfWeekOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="클리닉 시간">
+          <el-time-picker
+            v-model="currentClass.clinicTime"
+            placeholder="시간 선택 (선택사항)"
+            format="HH:mm"
+            value-format="HH:mm:ss"
+            style="width: 100%"
+            clearable
+          />
         </el-form-item>
       </el-form>
       <template #footer>

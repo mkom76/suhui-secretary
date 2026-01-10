@@ -227,6 +227,28 @@ public class LessonService {
     }
 
     /**
+     * Update lesson date
+     */
+    public LessonDto updateLessonDate(Long lessonId, LocalDate newDate) {
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+
+        // Check if another lesson already exists for this date and class
+        Optional<Lesson> existingLesson = lessonRepository.findByAcademyIdAndClassIdAndLessonDate(
+                lesson.getAcademy().getId(),
+                lesson.getAcademyClass().getId(),
+                newDate);
+
+        if (existingLesson.isPresent() && !existingLesson.get().getId().equals(lessonId)) {
+            throw new RuntimeException("같은 반에 해당 날짜의 수업이 이미 존재합니다");
+        }
+
+        lesson.setLessonDate(newDate);
+        lesson = lessonRepository.save(lesson);
+        return LessonDto.from(lesson);
+    }
+
+    /**
      * Get student statistics for a lesson (test scores and homework completion)
      */
     @Transactional(readOnly = true)

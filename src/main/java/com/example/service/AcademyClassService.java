@@ -62,6 +62,10 @@ public class AcademyClassService {
             academyClass.setAcademy(academy);
         }
 
+        // Update clinic settings
+        academyClass.setClinicDayOfWeek(dto.getClinicDayOfWeek());
+        academyClass.setClinicTime(dto.getClinicTime());
+
         academyClass = academyClassRepository.save(academyClass);
         return AcademyClassDto.from(academyClass);
     }

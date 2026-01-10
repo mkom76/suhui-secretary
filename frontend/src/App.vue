@@ -129,6 +129,11 @@ watch(() => route.path, () => {
           <span>수업 관리</span>
         </el-menu-item>
 
+        <el-menu-item index="/clinics">
+          <el-icon><MagicStick /></el-icon>
+          <span>클리닉 관리</span>
+        </el-menu-item>
+
         <el-divider style="margin: 12px 0" />
 
         <el-menu-item index="/academies">

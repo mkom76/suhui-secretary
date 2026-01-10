@@ -19,6 +19,8 @@ const selectedHomeworkId = ref<number | undefined>(undefined)
 const editingContent = ref(false)
 const editCommonFeedback = ref('')
 const editAnnouncement = ref('')
+const editingDate = ref(false)
+const editLessonDate = ref('')
 const editingHomeworkMap = ref<Map<number, boolean>>(new Map())
 const editIncorrectCountMap = ref<Map<number, number>>(new Map())
 const editUnsolvedCountMap = ref<Map<number, number>>(new Map())
@@ -299,6 +301,33 @@ const saveContent = async () => {
   }
 }
 
+const startEditingDate = () => {
+  editLessonDate.value = lesson.value?.lessonDate || ''
+  editingDate.value = true
+}
+
+const cancelEditingDate = () => {
+  editingDate.value = false
+  editLessonDate.value = ''
+}
+
+const saveDate = async () => {
+  if (!editLessonDate.value) {
+    ElMessage.error('날짜를 선택해주세요.')
+    return
+  }
+
+  try {
+    await lessonAPI.updateLessonDate(lessonId.value, editLessonDate.value)
+    ElMessage.success('수업 날짜가 변경되었습니다.')
+    editingDate.value = false
+    fetchLesson()
+  } catch (error: any) {
+    const message = error.response?.data?.message || '수업 날짜 변경에 실패했습니다.'
+    ElMessage.error(message)
+  }
+}
+
 const startEditingHomework = (studentId: number, currentIncorrectCount: number | undefined, currentUnsolvedCount: number | undefined) => {
   editingHomeworkMap.value.set(studentId, true)
   editIncorrectCountMap.value.set(studentId, currentIncorrectCount || 0)
@@ -374,9 +403,27 @@ onMounted(() => {
       <div v-if="lesson">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="수업 날짜">
-            {{ new Date(lesson.lessonDate).toLocaleDateString('ko-KR', {
-              year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-            }) }}
+            <div v-if="!editingDate" style="display: flex; justify-content: space-between; align-items: center">
+              <span>
+                {{ new Date(lesson.lessonDate).toLocaleDateString('ko-KR', {
+                  year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+                }) }}
+              </span>
+              <el-button type="primary" size="small" @click="startEditingDate">
+                날짜 변경
+              </el-button>
+            </div>
+            <div v-else style="display: flex; gap: 8px; align-items: center">
+              <el-date-picker
+                v-model="editLessonDate"
+                type="date"
+                placeholder="날짜 선택"
+                value-format="YYYY-MM-DD"
+                style="flex: 1"
+              />
+              <el-button type="primary" size="small" @click="saveDate">저장</el-button>
+              <el-button size="small" @click="cancelEditingDate">취소</el-button>
+            </div>
           </el-descriptions-item>
           <el-descriptions-item label="학원">
             {{ lesson.academyName }}

@@ -87,6 +87,18 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/clinics',
+      name: 'clinics',
+      component: () => import('../views/ClinicsView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
+    },
+    {
+      path: '/clinics/:id',
+      name: 'clinic-detail',
+      component: () => import('../views/ClinicDetailView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'TEACHER' }
+    },
+    {
       path: '/student/dashboard',
       name: 'student-dashboard',
       component: () => import('../views/StudentDashboardView.vue'),
@@ -108,6 +120,12 @@ const router = createRouter({
       path: '/student/stats',
       name: 'student-stats',
       component: () => import('../views/StudentDetailView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'STUDENT' }
+    },
+    {
+      path: '/student/clinic',
+      name: 'student-clinic',
+      component: () => import('../views/StudentClinicView.vue'),
       meta: { requiresAuth: true, requiresRole: 'STUDENT' }
     },
   ],

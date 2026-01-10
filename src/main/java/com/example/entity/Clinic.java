@@ -9,37 +9,42 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "academy_classes")
+@Table(name = "clinics")
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AcademyClass {
+public class Clinic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "academy_id", nullable = false)
-    private Academy academy;
+    @JoinColumn(name = "class_id", nullable = false)
+    private AcademyClass academyClass;
+
+    @Column(name = "clinic_date", nullable = false)
+    private LocalDate clinicDate;
+
+    @Column(name = "clinic_time", nullable = false)
+    private LocalTime clinicTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "clinic_day_of_week")
-    private DayOfWeek clinicDayOfWeek;
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private ClinicStatus status = ClinicStatus.OPEN;
 
-    @Column(name = "clinic_time")
-    private LocalTime clinicTime;
+    @OneToMany(mappedBy = "clinic", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ClinicRegistration> registrations = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -48,16 +53,4 @@ public class AcademyClass {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "academyClass", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<Student> students = new ArrayList<>();
-
-    @OneToMany(mappedBy = "academyClass", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<Test> tests = new ArrayList<>();
-
-    @OneToMany(mappedBy = "academyClass", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<Homework> homeworks = new ArrayList<>();
 }

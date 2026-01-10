@@ -104,6 +104,13 @@ public class LessonController {
                 lessonId, request.getCommonFeedback(), request.getAnnouncement()));
     }
 
+    @PutMapping("/{lessonId}/date")
+    public ResponseEntity<LessonDto> updateLessonDate(
+            @PathVariable Long lessonId,
+            @RequestBody UpdateLessonDateRequest request) {
+        return ResponseEntity.ok(lessonService.updateLessonDate(lessonId, request.getLessonDate()));
+    }
+
     // Request DTO for updating lesson content
     public static class UpdateLessonContentRequest {
         private String commonFeedback;
@@ -123,6 +130,19 @@ public class LessonController {
 
         public void setAnnouncement(String announcement) {
             this.announcement = announcement;
+        }
+    }
+
+    // Request DTO for updating lesson date
+    public static class UpdateLessonDateRequest {
+        private java.time.LocalDate lessonDate;
+
+        public java.time.LocalDate getLessonDate() {
+            return lessonDate;
+        }
+
+        public void setLessonDate(java.time.LocalDate lessonDate) {
+            this.lessonDate = lessonDate;
         }
     }
 }

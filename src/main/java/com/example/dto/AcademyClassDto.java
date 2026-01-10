@@ -6,7 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Data
 @NoArgsConstructor
@@ -17,6 +19,8 @@ public class AcademyClassDto {
     private String name;
     private Long academyId;
     private String academyName;
+    private DayOfWeek clinicDayOfWeek;
+    private LocalTime clinicTime;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -26,6 +30,8 @@ public class AcademyClassDto {
                 .name(academyClass.getName())
                 .academyId(academyClass.getAcademy() != null ? academyClass.getAcademy().getId() : null)
                 .academyName(academyClass.getAcademy() != null ? academyClass.getAcademy().getName() : null)
+                .clinicDayOfWeek(academyClass.getClinicDayOfWeek())
+                .clinicTime(academyClass.getClinicTime())
                 .createdAt(academyClass.getCreatedAt())
                 .updatedAt(academyClass.getUpdatedAt())
                 .build();

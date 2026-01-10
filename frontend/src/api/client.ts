@@ -23,6 +23,8 @@ interface AcademyClass {
   name: string;
   academyId?: number;
   academyName?: string;
+  clinicDayOfWeek?: string; // MONDAY, TUESDAY, ...
+  clinicTime?: string; // HH:mm:ss
   createdAt?: string;
   updatedAt?: string;
 }
@@ -259,6 +261,8 @@ export const lessonAPI = {
   getLessonStats: (lessonId: number) => client.get<LessonStudentStats>(`/lessons/${lessonId}/stats`),
   updateLessonContent: (lessonId: number, commonFeedback: string, announcement: string) =>
     client.put<Lesson>(`/lessons/${lessonId}/content`, { commonFeedback, announcement }),
+  updateLessonDate: (lessonId: number, lessonDate: string) =>
+    client.put<Lesson>(`/lessons/${lessonId}/date`, { lessonDate }),
 
   // 새로운 숙제 관리 API
   getLessonHomeworks: (lessonId: number) => client.get<Homework[]>(`/lessons/${lessonId}/homeworks`),
@@ -327,6 +331,90 @@ export const dailyFeedbackAPI = {
     client.put(`/daily-feedback/student/${studentId}/lesson/${lessonId}`, { feedback, authorName }),
 };
 
+// Clinic API
+export interface Clinic {
+  id?: number;
+  classId?: number;
+  className?: string;
+  academyId?: number;
+  academyName?: string;
+  clinicDate: string;
+  clinicTime: string;
+  status: 'OPEN' | 'CLOSED';
+  registrationCount?: number;
+}
+
+export interface ClinicRegistration {
+  id?: number;
+  clinicId?: number;
+  studentId?: number;
+  studentName?: string;
+  status: 'REGISTERED' | 'ATTENDED' | 'CANCELLED';
+  createdAt?: string;
+}
+
+export interface ClinicDetail {
+  clinic: Clinic;
+  students: StudentClinicHomework[];
+}
+
+export interface StudentClinicHomework {
+  studentId: number;
+  studentName: string;
+  registration?: ClinicRegistration;
+  homeworks: HomeworkProgress[];
+}
+
+export interface HomeworkProgress {
+  homeworkId: number;
+  homeworkTitle: string;
+  questionCount: number;
+  incorrectCount?: number;
+  unsolvedCount?: number;
+  completion?: number;
+  lessonId?: number;
+  lessonDate?: string;
+}
+
+export interface StudentClinicInfo {
+  upcomingClinic?: Clinic;
+  myRegistration?: ClinicRegistration;
+  shouldAttend: boolean;
+  incompleteHomeworks: IncompleteHomework[];
+}
+
+export interface IncompleteHomework {
+  homeworkId: number;
+  homeworkTitle: string;
+  completion?: number;
+  lessonDate?: string;
+}
+
+export const clinicAPI = {
+  createClinicForThisWeek: (classId: number) =>
+    client.post<Clinic>(`/clinics/class/${classId}/create-for-this-week`),
+  createClinic: (classId: number, clinicDate: string, clinicTime: string) =>
+    client.post<Clinic>(`/clinics/class/${classId}`, { clinicDate, clinicTime }),
+  getClinicsByClass: (classId: number) =>
+    client.get<Clinic[]>(`/clinics/class/${classId}`),
+  getUpcomingClinic: (classId: number) =>
+    client.get<Clinic>(`/clinics/class/${classId}/upcoming`),
+  getClinicDetail: (clinicId: number) =>
+    client.get<ClinicDetail>(`/clinics/${clinicId}/detail`),
+  registerForClinic: (clinicId: number, studentId: number) =>
+    client.post<ClinicRegistration>(`/clinics/${clinicId}/register`, { studentId }),
+  cancelRegistration: (clinicId: number, studentId: number) =>
+    client.delete(`/clinics/${clinicId}/register/${studentId}`),
+  updateAttendance: (registrationId: number, status: string) =>
+    client.put<ClinicRegistration>(`/clinics/registrations/${registrationId}/attendance`, { status }),
+  getStudentClinicInfo: (studentId: number) =>
+    client.get<StudentClinicInfo>(`/clinics/student/${studentId}/info`),
+  closeClinic: (clinicId: number) =>
+    client.put<Clinic>(`/clinics/${clinicId}/close`),
+  deleteClinic: (clinicId: number) =>
+    client.delete(`/clinics/${clinicId}`),
+};
+
 export default client;
 
 export type {
@@ -348,5 +436,12 @@ export type {
   StudentHomeworkAssignment,
   LessonStudentStats,
   StudentTestScore,
-  StudentHomeworkCompletion
+  StudentHomeworkCompletion,
+  Clinic,
+  ClinicRegistration,
+  ClinicDetail,
+  StudentClinicHomework,
+  HomeworkProgress,
+  StudentClinicInfo,
+  IncompleteHomework
 };

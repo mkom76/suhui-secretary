@@ -9,8 +9,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +34,9 @@ public class DataInitializer {
             HomeworkRepository homeworkRepository,
             StudentHomeworkRepository studentHomeworkRepository,
             TeacherRepository teacherRepository,
-            LessonRepository lessonRepository
+            LessonRepository lessonRepository,
+            ClinicRepository clinicRepository,
+            ClinicRegistrationRepository clinicRegistrationRepository
     ) {
         return args -> {
             log.info("Initializing sample data...");
@@ -57,35 +61,47 @@ public class DataInitializer {
 
             log.info("Created {} academies", 2);
 
-            // 2. 반 데이터 생성 (모두 수학반)
+            // 2. 반 데이터 생성 (모두 수학반, 클리닉 설정 포함)
             AcademyClass class1 = new AcademyClass();
             class1.setName("고1 수학 기본반");
             class1.setAcademy(academy1);
+            class1.setClinicDayOfWeek(DayOfWeek.SATURDAY);
+            class1.setClinicTime(LocalTime.of(10, 0));
             class1 = academyClassRepository.save(class1);
 
             AcademyClass class2 = new AcademyClass();
             class2.setName("고1 수학 심화반");
             class2.setAcademy(academy1);
+            class2.setClinicDayOfWeek(DayOfWeek.SATURDAY);
+            class2.setClinicTime(LocalTime.of(14, 0));
             class2 = academyClassRepository.save(class2);
 
             AcademyClass class3 = new AcademyClass();
             class3.setName("고2 수학 기본반");
             class3.setAcademy(academy1);
+            class3.setClinicDayOfWeek(DayOfWeek.SATURDAY);
+            class3.setClinicTime(LocalTime.of(16, 0));
             class3 = academyClassRepository.save(class3);
 
             AcademyClass class4 = new AcademyClass();
             class4.setName("고2 수학 심화반");
             class4.setAcademy(academy2);
+            class4.setClinicDayOfWeek(DayOfWeek.SUNDAY);
+            class4.setClinicTime(LocalTime.of(10, 0));
             class4 = academyClassRepository.save(class4);
 
             AcademyClass class5 = new AcademyClass();
             class5.setName("고3 수학 정규반");
             class5.setAcademy(academy2);
+            class5.setClinicDayOfWeek(DayOfWeek.SUNDAY);
+            class5.setClinicTime(LocalTime.of(14, 0));
             class5 = academyClassRepository.save(class5);
 
             AcademyClass class6 = new AcademyClass();
             class6.setName("고3 수학 특강반");
             class6.setAcademy(academy2);
+            class6.setClinicDayOfWeek(DayOfWeek.SUNDAY);
+            class6.setClinicTime(LocalTime.of(16, 0));
             class6 = academyClassRepository.save(class6);
 
             log.info("Created {} classes", 6);
@@ -633,12 +649,61 @@ public class DataInitializer {
 
             log.info("Created {} student homework records", 10);
 
+            // 11. 클리닉 데이터 생성
+            // 이번주 토요일 클리닉 (class1 - 고1 수학 기본반)
+            LocalDate nextSaturday = LocalDate.now().plusDays((6 - LocalDate.now().getDayOfWeek().getValue() + 6) % 7);
+            if (nextSaturday.isBefore(LocalDate.now()) || nextSaturday.equals(LocalDate.now())) {
+                nextSaturday = nextSaturday.plusWeeks(1);
+            }
+
+            Clinic clinic1 = new Clinic();
+            clinic1.setAcademyClass(class1);
+            clinic1.setClinicDate(nextSaturday);
+            clinic1.setClinicTime(LocalTime.of(10, 0));
+            clinic1.setStatus(ClinicStatus.OPEN);
+            clinic1 = clinicRepository.save(clinic1);
+
+            // 다음주 토요일 클리닉 (class2 - 고1 수학 심화반)
+            Clinic clinic2 = new Clinic();
+            clinic2.setAcademyClass(class2);
+            clinic2.setClinicDate(nextSaturday.plusWeeks(1));
+            clinic2.setClinicTime(LocalTime.of(14, 0));
+            clinic2.setStatus(ClinicStatus.OPEN);
+            clinic2 = clinicRepository.save(clinic2);
+
+            log.info("Created {} clinics", 2);
+
+            // 12. 클리닉 신청 데이터 생성 (완성도 낮은 학생들이 신청)
+            // student1 - homework1: 20개 중 8개 오답 (60% 완성도) -> 신청해야 함
+            // student2 - homework1: 20개 중 3개 오답 (85% 완성도) -> 신청해야 함
+            // student3 - homework2: 30개 중 9개 오답 (70% 완성도) -> 신청해야 함
+
+            ClinicRegistration reg1 = new ClinicRegistration();
+            reg1.setClinic(clinic1);
+            reg1.setStudent(student1);
+            reg1.setStatus(ClinicRegistrationStatus.REGISTERED);
+            clinicRegistrationRepository.save(reg1);
+
+            ClinicRegistration reg2 = new ClinicRegistration();
+            reg2.setClinic(clinic1);
+            reg2.setStudent(student2);
+            reg2.setStatus(ClinicRegistrationStatus.REGISTERED);
+            clinicRegistrationRepository.save(reg2);
+
+            ClinicRegistration reg3 = new ClinicRegistration();
+            reg3.setClinic(clinic1);
+            reg3.setStudent(student3);
+            reg3.setStatus(ClinicRegistrationStatus.REGISTERED);
+            clinicRegistrationRepository.save(reg3);
+
+            log.info("Created {} clinic registrations", 3);
+
             log.info("Sample data initialization completed successfully!");
             log.info("===================================================");
             log.info("Summary:");
             log.info("- Teachers: 1");
             log.info("- Academies: 2 (수학 전문)");
-            log.info("- Classes: 6 (모두 수학반)");
+            log.info("- Classes: 6 (모두 수학반, 클리닉 설정 포함)");
             log.info("- Students: 30");
             log.info("- Lessons: 8");
             log.info("- Tests: 5 (모두 수학 시험)");
@@ -646,6 +711,8 @@ public class DataInitializer {
             log.info("- Student Submissions: 8");
             log.info("- Homeworks: 9 (모두 수학 숙제, lesson1에 3개 숙제 등록 예시)");
             log.info("- Student Homework Records: 11 (학생별 다른 숙제 할당 예시)");
+            log.info("- Clinics: 2 (이번주, 다음주 토요일)");
+            log.info("- Clinic Registrations: 3 (완성도 낮은 학생들 신청)");
             log.info("===================================================");
         };
     }
