@@ -96,7 +96,7 @@ const handleTeacherLogin = async () => {
         <el-tabs v-model="activeTab" style="margin-top: 16px">
           <!-- Student Login Tab -->
           <el-tab-pane label="학생 로그인" name="student">
-            <el-form :model="studentForm" label-width="100px" style="margin-top: 24px">
+            <el-form :model="studentForm" label-position="left" label-width="60px" style="margin-top: 24px">
               <el-form-item label="학생 ID">
                 <el-input
                   v-model="studentForm.studentId"
@@ -131,7 +131,7 @@ const handleTeacherLogin = async () => {
 
           <!-- Teacher Login Tab -->
           <el-tab-pane label="선생님 로그인" name="teacher">
-            <el-form :model="teacherForm" label-width="100px" style="margin-top: 24px">
+            <el-form :model="teacherForm"  label-position="left" label-width="60px" style="margin-top: 24px">
               <el-form-item label="아이디">
                 <el-input
                   v-model="teacherForm.username"
